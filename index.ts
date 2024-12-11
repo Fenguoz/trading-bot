@@ -57,14 +57,19 @@ function generateSolanaWallet() {
   };
 }
 
-// 获取推特用户的最新推文
-
-
 // 监控推特用户的推文
-function monitorTwitterAccounts() {
+async function monitorTwitterAccounts() {
+  // 获取监控的推特用户名
+  const twitterHandles = await db.getData("/monitor");
+  if (twitterHandles) {
+    // 筛选出键值下数组不为空的
+    var monitoredUsers = Object.keys(twitterHandles).filter(key => twitterHandles[key].length > 0);
+  }
+
   setInterval(async () => {
     for (let username of monitoredUsers) {
       try {
+        console.log(`${Date.now()} monitor: ${username} start`);
         const tweets: any = await twitter.fetchTwitterUserTweets(username);
         for (let tweet of tweets) {
           // 检查推文中是否包含 Solana 地址（简单通过公共地址的模式进行判断）
@@ -73,6 +78,7 @@ function monitorTwitterAccounts() {
           if (solanaAddresses) {
             for (let address of solanaAddresses) {
               if (PublicKey.isOnCurve(new PublicKey(address))) {
+                await db.push("/monitor/logs/" + username, { id: tweet.tweet_id, address: address, time: Date.now() }, false);
                 console.log(`Found Solana address in tweet: ${address}`);
                 // 执行 Raydium 交易（这里进行实际交易操作）
                 // await executeRaydiumSwap(address);
@@ -80,6 +86,7 @@ function monitorTwitterAccounts() {
             }
           }
         }
+        console.log(`${Date.now()} monitor: ${username} end`);
       } catch (error) {
         console.error(`Error fetching tweets for ${username}:`, error);
       }
@@ -227,27 +234,26 @@ https://t.me/Aiptptest_bot?start=${chatId}`;
     const twitterName = receivedMessage.substring(1);
     console.log('twitterName', twitterName)
 
-    // 检查用户是否已经在监控列表中
-    if (await db.exists("/user_monitor/" + twitterName)) {
-      var data = await db.getData("/user_monitor/" + twitterName);
-      if (data.includes(chatId)) {
-        bot.sendMessage(chatId, `你已经在监控 @${twitterName}`);
-        return;
-      } else {
-        await db.push("/user_monitor/" + twitterName, [chatId], false);
-      }
-    } else {
+    //如果Db中monitor不存在，就创建一个
+    if (!await db.exists("/monitor/" + twitterName)) {
       // 检查推特用户是否存在
       const user = await twitter.getUserByUsername(twitterName);
-      console.log(user, 'user')
       if (user.status != "active") {
         bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
         return;
       }
-
-      await db.push("/monitor/" + twitterName, { name: user.name, id: user.id, rest_id: user.rest_id, sub_count: user.sub_count }, false);
-      await db.push("/user_monitor/" + twitterName, [chatId], false);
+      await db.push("/monitor/" + twitterName, [chatId], false);
     }
+
+    // 检查用户是否已经在监控列表中
+    if (await db.exists("/user_monitor/" + chatId)) {
+      var data = await db.getData("/user_monitor/" + chatId);
+      if (data.includes(twitterName)) {
+        bot.sendMessage(chatId, `你已经在监控 @${twitterName}`);
+        return;
+      }
+    }
+    await db.push("/user_monitor/" + chatId, [twitterName], false);
 
     userTwitterHandles[chatId] = twitterName;
     if (!monitoredUsers.includes(twitterName)) {
@@ -295,5 +301,5 @@ bot.on("callback_query", async (query) => {
 bot.on("polling_error", (msg) => console.log(msg));
 
 // 启动推特监控
-// monitorTwitterAccounts();
+monitorTwitterAccounts();
 console.log('Telegram Bot is running...');
