@@ -22,7 +22,6 @@
     "node-json-db": "^2.3.0",
     "node-telegram-bot-api": "^0.66.0",
     "redis": "^4.7.0",
-    "socks-proxy-agent": "^8.0.5",
     "twitter-api-v2": "^1.18.2"
   },
   "devDependencies": {

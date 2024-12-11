@@ -3,7 +3,6 @@ import { Keypair, Connection, PublicKey, Transaction, TransactionInstruction } f
 import { TwitterApi } from 'twitter-api-v2';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Market } from '@project-serum/serum';
-import Agent from 'socks-proxy-agent';
 import * as redis from 'redis';
 import { JsonDB, Config } from 'node-json-db';
 
@@ -21,17 +20,17 @@ redisClient.connect()
 // 替换为你的 Telegram Bot API Token
 const token = '7080776148:AAFmsp1SOQqk3mZHDxK8CSGgaikBHg7Bl2A';
 const bot = new TelegramBot(token, {
-	polling: true,
-	request: {
+  polling: true,
+  request: {
     proxy: 'http://127.0.0.1:1087',
     url: "https://api.telegram.org",
-	}
+  }
 })
 
 // Solana 连接
 const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
 
-// Twitter API 设置（需要替换为你的 API 密钥和 token）
+// Twitter API 设置
 const twitterClient = new TwitterApi({
   appKey: 'YOUR_TWITTER_API_KEY',
   appSecret: 'YOUR_TWITTER_API_SECRET',
@@ -59,32 +58,32 @@ async function fetchTwitterUserTweets(username: string) {
   return tweets.data;
 }
 
-// // 监控推特用户的推文
-// function monitorTwitterAccounts() {
-//   setInterval(async () => {
-//     for (let username of monitoredUsers) {
-//       try {
-//         const tweets = await fetchTwitterUserTweets(username);
-//         for (let tweet of tweets[Symbol.iterator]()) {
-//           // 检查推文中是否包含 Solana 地址（简单通过公共地址的模式进行判断）
-//           const solanaRegex = /[A-Za-z0-9]{32,44}/g;
-//           const solanaAddresses = tweet.text.match(solanaRegex);
-//           if (solanaAddresses) {
-//             for (let address of solanaAddresses) {
-//               if (PublicKey.isOnCurve(new PublicKey(address))) {
-//                 console.log(`Found Solana address in tweet: ${address}`);
-//                 // 执行 Raydium 交易（这里进行实际交易操作）
-//                 await executeRaydiumSwap(address);
-//               }
-//             }
-//           }
-//         }
-//       } catch (error) {
-//         console.error(`Error fetching tweets for ${username}:`, error);
-//       }
-//     }
-//   }, 10000); // 每 10 秒检查一次
-// }
+// 监控推特用户的推文
+function monitorTwitterAccounts() {
+  setInterval(async () => {
+    for (let username of monitoredUsers) {
+      try {
+        const tweets: any = await fetchTwitterUserTweets(username);
+        for (let tweet of tweets) {
+          // 检查推文中是否包含 Solana 地址（简单通过公共地址的模式进行判断）
+          const solanaRegex = /[A-Za-z0-9]{32,44}/g;
+          const solanaAddresses = tweet.text.match(solanaRegex);
+          if (solanaAddresses) {
+            for (let address of solanaAddresses) {
+              if (PublicKey.isOnCurve(new PublicKey(address))) {
+                console.log(`Found Solana address in tweet: ${address}`);
+                // 执行 Raydium 交易（这里进行实际交易操作）
+                // await executeRaydiumSwap(address);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching tweets for ${username}:`, error);
+      }
+    }
+  }, 10000); // 每 10 秒检查一次
+}
 
 // // 执行 Raydium Swap
 // async function executeRaydiumSwap(address: string) {
@@ -97,7 +96,7 @@ async function fetchTwitterUserTweets(username: string) {
 //   // 设置需要交易的 Token 对：例如 USDC -> SOL
 //   const baseMintAddress = new PublicKey('USDC_MINT_ADDRESS');
 //   const quoteMintAddress = new PublicKey('SOL_MINT_ADDRESS');
-  
+
 //   // 创建交易的相关账户
 //   const payer = Keypair.generate();
 //   const fromTokenAccount = await getOrCreateAssociatedTokenAccount(payer, baseMintAddress);
@@ -129,7 +128,7 @@ async function fetchTwitterUserTweets(username: string) {
 //     [payer.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintAddress.toBuffer()],
 //     ASSOCIATED_TOKEN_PROGRAM_ID
 //   );
-  
+
 //   // 检查是否已经有这个账户
 //   const accountInfo = await connection.getAccountInfo(associatedTokenAddress[0]);
 //   if (accountInfo === null) {
@@ -149,7 +148,7 @@ async function fetchTwitterUserTweets(username: string) {
 //         payer.publicKey
 //       )
 //     );
-    
+
 //     await connection.sendTransaction(transaction, [payer], { skipPreflight: false, preflightCommitment: 'confirmed' });
 //   }
 //   return associatedTokenAddress[0];
@@ -163,10 +162,10 @@ bot.on('message', async (msg) => {
 
   if (receivedMessage == '/start') {
     //判断是否已经注册
-    if(await db.exists("/user/"+chatId)){
-      await db.push("/user/"+chatId,{loginTime:Date.now()}, false);
-    }else{
-      await db.push("/user/"+chatId,{wallet:'', loginTime:Date.now(), registerTime:Date.now()});
+    if (await db.exists("/user/" + chatId)) {
+      await db.push("/user/" + chatId, { loginTime: Date.now() }, false);
+    } else {
+      await db.push("/user/" + chatId, { wallet: '', loginTime: Date.now(), registerTime: Date.now() });
     }
 
     var message = `邀请返佣👑
@@ -189,9 +188,9 @@ https://t.me/Aiptptest_bot?start=${chatId}`;
     bot.sendMessage(chatId, message, option);
   } else if (receivedMessage === '/wallet') {
     //判断用户是否已生成过地址
-    var user = await db.getData("/user/"+chatId);
+    var user = await db.getData("/user/" + chatId);
     console.log('user', user);
-    if(user.wallet){
+    if (user.wallet) {
       var message = `你已经创建过钱包了，请勿重复创建。`;
       bot.sendMessage(chatId, message, {
         parse_mode: 'Markdown',
@@ -199,31 +198,55 @@ https://t.me/Aiptptest_bot?start=${chatId}`;
           inline_keyboard: [[{ text: '重新创建钱包', callback_data: '/new_wallet' }]]
         }
       });
-    }else{
+    } else {
       // 生成 Solana 钱包
       const wallet = generateSolanaWallet();
-  
+
       // 将用户信息储存到本地json文件中
-      await db.push("/user/"+chatId,{wallet:wallet.publicKey}, false);
-  
+      await db.push("/user/" + chatId, { wallet: wallet.publicKey }, false);
+
       // 将用户钱包信息添加到 Redis 队列
       await redisClient.lPush('user_wallets', JSON.stringify({
         chatId: chatId,
         publicKey: wallet.publicKey,
         secretKey: wallet.secretKey,
       }));
-  
+
       var message = `*务必保管好私钥，一旦删除将无法找回❗️❗️*
   
   钱包地址：${wallet.publicKey}
   私钥 ：${wallet.secretKey}`;
-  
+
       bot.sendMessage(chatId, message, {
         parse_mode: 'Markdown',
       });
     }
   } else if (receivedMessage.startsWith('@')) { // 用户发送 @用户名，监控推特
     const twitterHandle = receivedMessage.substring(1);
+    console.log('twitterHandle', twitterHandle)
+
+    // 检查用户是否已经在监控列表中
+    if (await db.exists("/user_monitor/" + twitterHandle)) {
+      var data = await db.getData("/user_monitor/" + twitterHandle);
+      if (data.includes(chatId)) {
+        bot.sendMessage(chatId, `你已经在监控 @${twitterHandle}`);
+        return;
+      } else {
+        await db.push("/user_monitor/" + twitterHandle, chatId, false);
+      }
+    } else {
+      // 检查推特用户是否存在
+      const user = await twitterClient.v2.userByUsername(twitterHandle);
+      console.log(user, 'user')
+      if (!user) {
+        bot.sendMessage(chatId, `推特用户 @${twitterHandle} 不存在`);
+        return;
+      }
+
+      await db.push("/monitor/" + twitterHandle, { name: twitterHandle }, false);
+      await db.push("/user_monitor/" + twitterHandle, chatId, false);
+    }
+
     userTwitterHandles[chatId] = twitterHandle;
     if (!monitoredUsers.includes(twitterHandle)) {
       monitoredUsers.push(twitterHandle);
@@ -245,8 +268,8 @@ bot.on("callback_query", async (query) => {
     const wallet = generateSolanaWallet();
 
     // 将用户信息储存到本地json文件中
-    await db.push("/user/"+chatId,{wallet:wallet.publicKey}, false);
-  
+    await db.push("/user/" + chatId, { wallet: wallet.publicKey }, false);
+
     // 将用户钱包信息添加到 Redis 队列
     await redisClient.lPush('user_wallets', JSON.stringify({
       chatId: chatId,
@@ -262,7 +285,7 @@ bot.on("callback_query", async (query) => {
     await bot.sendMessage(chatId, message, {
       parse_mode: 'Markdown',
     });
-  }else {
+  } else {
     bot.sendMessage(chatId, `你说的是: ${data}`);
   }
 });
