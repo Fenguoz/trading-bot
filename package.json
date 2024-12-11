@@ -1,0 +1,34 @@
+{
+  "name": "trading-bot",
+  "version": "0.0.1-alpha",
+  "description": "A (Solana) trading bot that monitors (Twitter, Telegram users)",
+  "author": "Fenguoz",
+  "license": "GPL-3.0",
+  "keywords": [
+    "solana",
+    "trading",
+    "bot",
+    "twitter",
+    "telegram"
+  ],
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "@project-serum/serum": "^0.13.65",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.95.8",
+    "axios": "^1.7.9",
+    "node-json-db": "^2.3.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "redis": "^4.7.0",
+    "socks-proxy-agent": "^8.0.5",
+    "twitter-api-v2": "^1.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/node-telegram-bot-api": "^0.64.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}
