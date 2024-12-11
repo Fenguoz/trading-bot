@@ -1,10 +1,12 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { Keypair, Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
-import { TwitterApi } from 'twitter-api-v2';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Market } from '@project-serum/serum';
 import * as redis from 'redis';
 import { JsonDB, Config } from 'node-json-db';
+import { Twitter } from './twitter';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // 第一个参数是数据库文件名。如果没有写扩展名，则默认为“.json”并自动添加。
 // 第二个参数用于告诉数据库在每次推送后保存，如果设置false，则必须手动调用save()方法。
@@ -12,13 +14,14 @@ import { JsonDB, Config } from 'node-json-db';
 // 最后一个参数是分隔符。默认情况下为斜线（/） 
 const db = new JsonDB(new Config("dataBase", true, false, '/'));
 
+const redisHost = process.env.REDIS_HOST;
+const reidsPort = process.env.REDIS_PORT;
 const redisClient = redis.createClient({
-  url: 'redis://localhost:6379'
+  url: `redis://${redisHost}:${reidsPort}`
 })
 redisClient.connect()
 
-// 替换为你的 Telegram Bot API Token
-const token = '7080776148:AAFmsp1SOQqk3mZHDxK8CSGgaikBHg7Bl2A';
+const token = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const bot = new TelegramBot(token, {
   polling: true,
   request: {
@@ -28,15 +31,18 @@ const bot = new TelegramBot(token, {
 })
 
 // Solana 连接
-const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+const rpc_endpoint = process.env.RPC_ENDPOINT ?? 'https://api.mainnet-beta.solana.com';
+const connection = new Connection(rpc_endpoint);
 
 // Twitter API 设置
-const twitterClient = new TwitterApi({
-  appKey: 'YOUR_TWITTER_API_KEY',
-  appSecret: 'YOUR_TWITTER_API_SECRET',
-  accessToken: '1082839400235626497-DqsvWbawh27tt9U4sRhwzR9DBOlHO8',
-  accessSecret: 'bMrKQCpTUpJyKHjkaRp6XqbFGtRHULNrgWBJUVoY1SRDv',
+const twitter = new Twitter({
+  appKey: process.env.TWITTER_APP_KEY ?? '',
+  appSecret: process.env.TWITTER_APP_SECRET ?? '',
+  accessToken: process.env.TWITTER_ACCESS_TOKEN ?? '',
+  accessSecret: process.env.TWITTER_ACCESS_SECRET ?? '',
 });
+// twitter.fetchTwitterUserTweets('elonmusk');
+
 
 // 用于记录用户推特监控信息
 let monitoredUsers: string[] = [];  // 用户监控的推特用户名
@@ -52,18 +58,14 @@ function generateSolanaWallet() {
 }
 
 // 获取推特用户的最新推文
-async function fetchTwitterUserTweets(username: string) {
-  const user = await twitterClient.v2.userByUsername(username);
-  const tweets = await twitterClient.v2.userTimeline(user.data.id, { max_results: 5 });
-  return tweets.data;
-}
+
 
 // 监控推特用户的推文
 function monitorTwitterAccounts() {
   setInterval(async () => {
     for (let username of monitoredUsers) {
       try {
-        const tweets: any = await fetchTwitterUserTweets(username);
+        const tweets: any = await twitter.fetchTwitterUserTweets(username);
         for (let tweet of tweets) {
           // 检查推文中是否包含 Solana 地址（简单通过公共地址的模式进行判断）
           const solanaRegex = /[A-Za-z0-9]{32,44}/g;
@@ -222,37 +224,37 @@ https://t.me/Aiptptest_bot?start=${chatId}`;
       });
     }
   } else if (receivedMessage.startsWith('@')) { // 用户发送 @用户名，监控推特
-    const twitterHandle = receivedMessage.substring(1);
-    console.log('twitterHandle', twitterHandle)
+    const twitterName = receivedMessage.substring(1);
+    console.log('twitterName', twitterName)
 
     // 检查用户是否已经在监控列表中
-    if (await db.exists("/user_monitor/" + twitterHandle)) {
-      var data = await db.getData("/user_monitor/" + twitterHandle);
+    if (await db.exists("/user_monitor/" + twitterName)) {
+      var data = await db.getData("/user_monitor/" + twitterName);
       if (data.includes(chatId)) {
-        bot.sendMessage(chatId, `你已经在监控 @${twitterHandle}`);
+        bot.sendMessage(chatId, `你已经在监控 @${twitterName}`);
         return;
       } else {
-        await db.push("/user_monitor/" + twitterHandle, chatId, false);
+        await db.push("/user_monitor/" + twitterName, [chatId], false);
       }
     } else {
       // 检查推特用户是否存在
-      const user = await twitterClient.v2.userByUsername(twitterHandle);
+      const user = await twitter.getUserByUsername(twitterName);
       console.log(user, 'user')
-      if (!user) {
-        bot.sendMessage(chatId, `推特用户 @${twitterHandle} 不存在`);
+      if (user.status != "active") {
+        bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
         return;
       }
 
-      await db.push("/monitor/" + twitterHandle, { name: twitterHandle }, false);
-      await db.push("/user_monitor/" + twitterHandle, chatId, false);
+      await db.push("/monitor/" + twitterName, { name: user.name, id: user.id, rest_id: user.rest_id, sub_count: user.sub_count }, false);
+      await db.push("/user_monitor/" + twitterName, [chatId], false);
     }
 
-    userTwitterHandles[chatId] = twitterHandle;
-    if (!monitoredUsers.includes(twitterHandle)) {
-      monitoredUsers.push(twitterHandle);
-      bot.sendMessage(chatId, `开始监控推特用户 @${twitterHandle}`);
+    userTwitterHandles[chatId] = twitterName;
+    if (!monitoredUsers.includes(twitterName)) {
+      monitoredUsers.push(twitterName);
+      bot.sendMessage(chatId, `开始监控推特用户 @${twitterName}`);
     } else {
-      bot.sendMessage(chatId, `你已经在监控 @${twitterHandle}`);
+      bot.sendMessage(chatId, `你已经在监控 @${twitterName}`);
     }
   }
   else {

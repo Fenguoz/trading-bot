@@ -19,6 +19,7 @@
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.8",
     "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
     "node-json-db": "^2.3.0",
     "node-telegram-bot-api": "^0.66.0",
     "redis": "^4.7.0",
