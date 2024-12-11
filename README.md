@@ -5,8 +5,10 @@
 A (Solana) trading bot that monitors (Twitter, Telegram users)
 
 ## TODO
-- [ ] Add Twitter monitoring
-- [ ] Add Telegram monitoring
+- [ ] Add Multi-task monitoring
 - [ ] Add Raydium trading
 - [ ] Add Jito Tips
+- [ ] Add Telegram monitoring
+- [ ] Add cancellation monitoring
+- [ ] Add test cases
 - ...
