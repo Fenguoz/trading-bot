@@ -15,11 +15,13 @@
     "start": "ts-node index.ts"
   },
   "dependencies": {
-    "@project-serum/serum": "^0.13.65",
+    "@raydium-io/raydium-sdk-v2": "^0.1.94-alpha",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.8",
     "axios": "^1.7.9",
+    "bs58": "^6.0.0",
     "dotenv": "^16.4.7",
+    "https-proxy-agent": "^7.0.6",
     "node-json-db": "^2.3.0",
     "node-telegram-bot-api": "^0.66.0",
     "redis": "^4.7.0",

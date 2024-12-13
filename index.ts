@@ -1,12 +1,13 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { Keypair, Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { Market } from '@project-serum/serum';
+import { Keypair, Connection, PublicKey } from '@solana/web3.js';
 import * as redis from 'redis';
 import { JsonDB, Config } from 'node-json-db';
 import { Twitter } from './twitter';
+import { Swap } from './swap';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Swap();
 
 // 第一个参数是数据库文件名。如果没有写扩展名，则默认为“.json”并自动添加。
 // 第二个参数用于告诉数据库在每次推送后保存，如果设置false，则必须手动调用save()方法。
@@ -81,7 +82,7 @@ async function monitorTwitterAccounts() {
                 await db.push("/monitor/logs/" + username, { id: tweet.tweet_id, address: address, time: Date.now() }, false);
                 console.log(`Found Solana address in tweet: ${address}`);
                 // 执行 Raydium 交易（这里进行实际交易操作）
-                // await executeRaydiumSwap(address);
+                // Swap();
               }
             }
           }
@@ -93,75 +94,6 @@ async function monitorTwitterAccounts() {
     }
   }, 10000); // 每 10 秒检查一次
 }
-
-// // 执行 Raydium Swap
-// async function executeRaydiumSwap(address: string) {
-//   console.log(`Executing Raydium Swap to buy 1 SOL using the address: ${address}`);
-
-//   // 设置市场地址（根据 Raydium 相关市场配置修改）
-//   const marketAddress = new PublicKey('RAYDIUM_MARKET_ADDRESS');  // Raydium 市场的地址
-//   const market = await Market.load(connection, marketAddress, {}, TOKEN_PROGRAM_ID);
-
-//   // 设置需要交易的 Token 对：例如 USDC -> SOL
-//   const baseMintAddress = new PublicKey('USDC_MINT_ADDRESS');
-//   const quoteMintAddress = new PublicKey('SOL_MINT_ADDRESS');
-
-//   // 创建交易的相关账户
-//   const payer = Keypair.generate();
-//   const fromTokenAccount = await getOrCreateAssociatedTokenAccount(payer, baseMintAddress);
-//   const toTokenAccount = await getOrCreateAssociatedTokenAccount(payer, quoteMintAddress);
-
-//   // 创建交易指令
-//   const transaction = new Transaction();
-//   const price = 1;  // 假设我们交换 1 USDC
-//   const instruction = await market.makePlaceOrderInstruction(
-//     payer.publicKey,
-//     {
-//       side: 'buy',
-//       price: price,
-//       size: 1,  // 交换 1 SOL
-//       orderType: 'limit',
-//       clientId: Math.floor(Math.random() * 1000000),  // 随机的 client ID
-//     }
-//   );
-//   transaction.add(instruction);
-
-//   // 发送交易
-//   const signature = await connection.sendTransaction(transaction, [payer], { skipPreflight: false, preflightCommitment: 'confirmed' });
-//   console.log(`Swap transaction sent: ${signature}`);
-// }
-
-// // 获取或创建关联的 Solana 代币账户
-// async function getOrCreateAssociatedTokenAccount(payer: Keypair, mintAddress: PublicKey) {
-//   const associatedTokenAddress = await PublicKey.findProgramAddress(
-//     [payer.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintAddress.toBuffer()],
-//     ASSOCIATED_TOKEN_PROGRAM_ID
-//   );
-
-//   // 检查是否已经有这个账户
-//   const accountInfo = await connection.getAccountInfo(associatedTokenAddress[0]);
-//   if (accountInfo === null) {
-//     // 如果没有账户，创建新的账户
-//     const transaction = new Transaction().add(
-//       SystemProgram.createAccount({
-//         fromPubkey: payer.publicKey,
-//         newAccountPubkey: associatedTokenAddress[0],
-//         lamports: await connection.getMinimumBalanceForRentExemption(ACCOUNT_LAYOUT.span),
-//         space: ACCOUNT_LAYOUT.span,
-//         programId: TOKEN_PROGRAM_ID,
-//       }),
-//       Token.createInitAccountInstruction(
-//         TOKEN_PROGRAM_ID,
-//         mintAddress,
-//         associatedTokenAddress[0],
-//         payer.publicKey
-//       )
-//     );
-
-//     await connection.sendTransaction(transaction, [payer], { skipPreflight: false, preflightCommitment: 'confirmed' });
-//   }
-//   return associatedTokenAddress[0];
-// }
 
 // 监听消息并处理相关命令
 bot.on('message', async (msg) => {
@@ -301,5 +233,5 @@ bot.on("callback_query", async (query) => {
 bot.on("polling_error", (msg) => console.log(msg));
 
 // 启动推特监控
-monitorTwitterAccounts();
+// monitorTwitterAccounts();
 console.log('Telegram Bot is running...');
