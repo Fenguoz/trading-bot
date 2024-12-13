@@ -12,7 +12,7 @@
     "telegram"
   ],
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node ./src/index.ts"
   },
   "dependencies": {
     "@raydium-io/raydium-sdk-v2": "^0.1.94-alpha",
