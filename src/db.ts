@@ -20,6 +20,15 @@ export class DB {
     public async editUser(userKey: string | number, params: any, isNew: boolean = false) {
         return await this.db.push("/user/" + userKey, params, isNew);
     }
+    public async setUserState(userKey: string | number, params: any) {
+        return await this.db.push("/user/" + userKey + "/state", params, false);
+    }
+    public async getUserState(userKey: string | number) {
+        if (!await this.db.exists("/user/" + userKey + "/state")) {
+            return null;
+        }
+        return await this.db.getData("/user/" + userKey + "/state");
+    }
 
     public async monitorExists(userKey: string | number) {
         return await this.db.exists("/monitor/" + userKey);
