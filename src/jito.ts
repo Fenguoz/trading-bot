@@ -8,7 +8,7 @@ import axios from 'axios'
  * @property {any[]} params
  */
 
-export class JitoJsonRpcClient {
+export class JitoClient {
 
     public readonly baseUrl: string;
     public readonly uuid: string;

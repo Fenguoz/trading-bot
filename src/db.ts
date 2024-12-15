@@ -24,17 +24,17 @@ export class DB {
         return await this.db.push("/user/" + userKey + "/state", params, false);
     }
     public async getUserState(userKey: string | number) {
-        if (!await this.db.exists("/user/" + userKey + "/state")) {
-            return null;
-        }
         return await this.db.getData("/user/" + userKey + "/state");
     }
 
     public async monitorExists(userKey: string | number) {
         return await this.db.exists("/monitor/" + userKey);
     }
-    public async getMonitor() {
+    public async getMonitorAll() {
         return await this.db.getData("/monitor");
+    }
+    public async getMonitor(username: string) {
+        return await this.db.getData("/monitor/" + username);
     }
     public async editMonitor(username: string, params: any) {
         return await this.db.push("/monitor/" + username, params, false);
@@ -51,6 +51,26 @@ export class DB {
     }
 
     public async editMonitorLogs(username: string, params: any) {
-        return await this.db.push("/monitor/logs/" + username, params, false);
+        return await this.db.push("/monitor_logs/" + username, params, false);
+    }
+
+    public async editTxLogs(username: string, params: any) {
+        return await this.db.push("/tx_logs/" + username, params, false);
+    }
+
+    public async editMessageQueueList(params: any) {
+        return await this.db.push("/message_queue/list", [params], false);
+    }
+    public async getMessageQueueByKey(params: any) {
+        if (!await this.db.exists("/message_queue/list/" + params)) {
+            return null;
+        }
+        return await this.db.getData("/message_queue/list/" + params);
+    }
+    public async getMessageQueueRunKey() {
+        return await this.db.getData("/message_queue/runKey");
+    }
+    public async editMessageQueueRunKey(params: any) {
+        return await this.db.push("/message_queue/runKey", params);
     }
 }

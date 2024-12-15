@@ -4,6 +4,7 @@ import { Monitor } from "./monitor";
 import { Twitter } from "./twitter";
 import { Keypair } from "@solana/web3.js";
 import * as redis from 'redis';
+import bs58 from 'bs58'
 
 export interface BotConfig {
   token: string,
@@ -55,7 +56,7 @@ export class Bot {
     // Redis start
     this.redis.connect();
     // Monitor tool start
-    // this.monitor.start();
+    this.monitor.start();
 
     // 监听消息并处理相关命令
     this.bot.on('message', async (msg) => {
@@ -71,11 +72,13 @@ export class Bot {
         } else {
           await this.db.editUser(chatId, {
             wallet: '',
+            walletKey: '',
             loginTime: Date.now(),
             registerTime: Date.now(),
             integral: '0',
             settingAmount: '0.01',
             settingGas: '0.0005',
+            settingTip: '0.0001',
             settingFrequency: '4',
             settingSlippage: '20',
             state: '',
@@ -111,11 +114,15 @@ export class Bot {
 
         var option = {
           reply_markup: {
-            inline_keyboard: [[
-              { text: '设置', callback_data: '/setting' },
-              { text: '个人资料', callback_data: '/info' },
-              { text: '提现收益', callback_data: '/withdraw' }
-            ]]
+            inline_keyboard: [
+              [
+                { text: '设置', callback_data: '/setting' }
+              ],
+              [
+                { text: '个人资料', callback_data: '/info' },
+                { text: '提现收益', callback_data: '/withdraw' }
+              ]
+            ]
           }
         }
 
@@ -137,14 +144,14 @@ export class Bot {
           const wallet = this.generateSolanaWallet();
 
           // 将用户信息储存到本地json文件中
-          await this.db.editUser(chatId, { wallet: wallet.publicKey });
+          await this.db.editUser(chatId, { wallet: wallet.publicKey, walletKey: wallet.secretKey });
 
-          // 将用户钱包信息添加到 Redis 队列
-          await this.redis.lPush('user_wallets', JSON.stringify({
-            chatId: chatId,
-            publicKey: wallet.publicKey,
-            secretKey: wallet.secretKey,
-          }));
+          // // 将用户钱包信息添加到 Redis 队列
+          // await this.redis.lPush('user_wallets', JSON.stringify({
+          //   chatId: chatId,
+          //   publicKey: wallet.publicKey,
+          //   secretKey: wallet.secretKey,
+          // }));
 
           var message = `*务必保管好私钥，一旦删除将无法找回❗️❗️*
   
@@ -190,7 +197,7 @@ export class Bot {
       else {
         var state = await this.db.getUserState(chatId)
         console.log('state', state)
-        if (state == 'settingAmount' || state == 'settingGas' || state == 'settingFrequency' || state == 'settingSlippage') {
+        if (state == 'settingAmount' || state == 'settingGas' || state == 'settingFrequency' || state == 'settingSlippage' || state == 'settingTip') {
           await this.db.setUserState(chatId, '');
           await this.db.editUser(chatId, { [state]: receivedMessage });
 
@@ -203,6 +210,7 @@ export class Bot {
 
 购买的金额：${user.settingAmount} SOL
 gas费：${user.settingGas} SOL
+小费：${user.settingTip} SOL
 滑点：${user.settingSlippage}%
 速率：${user.settingFrequency}
 积分：${user.integral}
@@ -215,7 +223,10 @@ gas费：${user.settingGas} SOL
               inline_keyboard: [
                 [
                   { text: '金额', callback_data: '/settingAmount' },
-                  { text: 'gas', callback_data: '/settingGas' },
+                ],
+                [
+                  { text: 'gas费', callback_data: '/settingGas' },
+                  { text: '小费', callback_data: '/settingTip' },
                 ],
                 [
                   { text: '速率', callback_data: '/settingFrequency' },
@@ -243,14 +254,14 @@ gas费：${user.settingGas} SOL
         const wallet = this.generateSolanaWallet();
 
         // 将用户信息储存到本地json文件中
-        await this.db.editUser(chatId, { wallet: wallet.publicKey });
+        await this.db.editUser(chatId, { wallet: wallet.publicKey, walletKey: wallet.secretKey });
 
-        // 将用户钱包信息添加到 Redis 队列
-        await this.redis.lPush('user_wallets', JSON.stringify({
-          chatId: chatId,
-          publicKey: wallet.publicKey,
-          secretKey: wallet.secretKey,
-        }));
+        // // 将用户钱包信息添加到 Redis 队列
+        // await this.redis.lPush('user_wallets', JSON.stringify({
+        //   chatId: chatId,
+        //   publicKey: wallet.publicKey,
+        //   secretKey: wallet.secretKey,
+        // }));
 
         var message = `*务必保管好私钥，一旦删除将无法找回❗️❗️*
 
@@ -267,6 +278,7 @@ gas费：${user.settingGas} SOL
 
 购买的金额：${user.settingAmount} SOL
 gas费：${user.settingGas} SOL
+小费：${user.settingTip} SOL
 滑点：${user.settingSlippage}%
 速率：${user.settingFrequency}
 积分：${user.integral}
@@ -285,7 +297,10 @@ gas费：${user.settingGas} SOL
             inline_keyboard: [
               [
                 { text: '金额', callback_data: '/settingAmount' },
-                { text: 'gas', callback_data: '/settingGas' },
+              ],
+              [
+                { text: 'gas费', callback_data: '/settingGas' },
+                { text: '小费', callback_data: '/settingTip' },
               ],
               [
                 { text: '速率', callback_data: '/settingFrequency' },
@@ -309,6 +324,14 @@ gas费：${user.settingGas} SOL
       } else if (data === "/settingGas") {
         this.db.setUserState(chatId, 'settingGas');
         var message = `请输入gas费：`;
+        this.bot.editMessageText(message, {
+          chat_id: chatId,
+          message_id: messageId,
+          parse_mode: 'Markdown',
+        });
+      } else if (data === "/settingTip") {
+        this.db.setUserState(chatId, 'settingTip');
+        var message = `请输入小费：`;
         this.bot.editMessageText(message, {
           chat_id: chatId,
           message_id: messageId,
@@ -341,8 +364,8 @@ gas费：${user.settingGas} SOL
   generateSolanaWallet() {
     const keypair = Keypair.generate();
     return {
-      publicKey: keypair.publicKey.toString(),
-      secretKey: Buffer.from(keypair.secretKey).toString('hex'),
+      publicKey: keypair.publicKey.toBase58(),
+      secretKey: bs58.encode(keypair.secretKey),
     };
   }
 
