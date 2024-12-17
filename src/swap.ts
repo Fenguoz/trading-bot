@@ -72,7 +72,7 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     return
   }
 
-  const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
+  // const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
 
   // get statistical transaction fee from api
   /**
@@ -85,14 +85,14 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     success: boolean
     data: { default: { vh: number; h: number; m: number } }
   }>(`${API_URLS.BASE_HOST}${API_URLS.PRIORITY_FEE}`, {
-    httpsAgent: agent,
+    // httpsAgent: agent,
   })
 
   const { data: swapResponse } = await axios.get(
     `${API_URLS.SWAP_HOST
     }/compute/swap-base-in?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippage}&txVersion=${txVersion}`
     , {
-      httpsAgent: agent,
+      // httpsAgent: agent,
     })
   console.log('swapResponse', swapResponse)
 

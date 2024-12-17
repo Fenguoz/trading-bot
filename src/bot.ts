@@ -35,10 +35,10 @@ export class Bot {
   constructor(config: BotConfig) {
     this.bot = new TelegramBot(config.token, {
       polling: true,
-      request: {
-        proxy: 'http://127.0.0.1:1087',
-        url: "https://api.telegram.org",
-      }
+      // request: {
+      //   proxy: 'http://127.0.0.1:1087',
+      //   url: "https://api.telegram.org",
+      // }
     });
     this.twitter = new Twitter({
       appKey: config.twitter.appKey,
