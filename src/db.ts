@@ -80,6 +80,9 @@ export class DB {
         return await this.db.getData("/message_queue/list/" + params);
     }
     public async getMessageQueueRunKey() {
+        if (!await this.db.exists("/message_queue/runKey")) {
+            return 0;
+        }
         return await this.db.getData("/message_queue/runKey");
     }
     public async editMessageQueueRunKey(params: any) {

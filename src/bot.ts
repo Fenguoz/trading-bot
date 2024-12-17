@@ -5,6 +5,7 @@ import { Twitter } from "./twitter";
 import { Keypair } from "@solana/web3.js";
 import * as redis from 'redis';
 import bs58 from 'bs58'
+import { Queue } from "./queue";
 
 export interface BotConfig {
   token: string,
@@ -27,6 +28,7 @@ export class Bot {
   public readonly bot: TelegramBot;
   public readonly twitter: Twitter;
   public readonly db: DB;
+  public readonly queue: Queue;
   public readonly redis: redis.RedisClientType;
   public readonly monitor: Monitor;
 
@@ -50,6 +52,7 @@ export class Bot {
     });
 
     this.monitor = new Monitor(this.twitter, this.db);
+    this.queue = new Queue(this.bot, this.db);
   }
 
   public start() {
@@ -57,6 +60,8 @@ export class Bot {
     this.redis.connect();
     // Monitor tool start
     this.monitor.start();
+    // 启动队列
+    this.queue.start();
 
     // 监听消息并处理相关命令
     this.bot.on('message', async (msg) => {
@@ -173,7 +178,7 @@ export class Bot {
           if (user.status != "active") {
             this.bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
             return;
-          }else{
+          } else {
             //更新推特光标
             this.monitor.getUserTwitterHandles(twitterName)
           }
