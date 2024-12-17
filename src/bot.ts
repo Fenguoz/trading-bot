@@ -168,6 +168,13 @@ export class Bot {
           });
         }
       } else if (receivedMessage.startsWith('@')) { // 用户发送 @用户名，监控推特
+        //判断地址是否创建
+        const user = await this.db.getUser(chatId);
+        if (!user.wallet) {
+          this.bot.sendMessage(chatId, `请先创建钱包`);
+          return;
+        }
+
         const twitterName = receivedMessage.substring(1);
         console.log('twitterName', twitterName)
 
