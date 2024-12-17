@@ -111,7 +111,7 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     inputAccount: isInputSol ? undefined : inputTokenAcc?.toBase58(),
     outputAccount: isOutputSol ? undefined : outputTokenAcc?.toBase58(),
   }, {
-    httpsAgent: agent,
+    // httpsAgent: agent,
   })
 
   // console.log('swapTransactions', swapTransactions.data)
