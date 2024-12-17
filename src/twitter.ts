@@ -48,12 +48,12 @@ export class Twitter {
     protected apiHost = 'twitter-api45.p.rapidapi.com';
     protected apiKey = process.env.TWITTER_API_KEY ?? '';
 
-    public async fetchTwitterUserTweets(username: string) {
+    public async fetchTwitterUserTweets(username: string, cursor: string = '') {
         const { data } = await axios.get(
-            `https://${this.apiHost}/timeline.php?screenname=${username}`,
+            `https://${this.apiHost}/timeline.php?screenname=${username}&cursor=${cursor}`,
             { headers: { 'x-rapidapi-host': this.apiHost, 'x-rapidapi-key': this.apiKey } }
         )
-        return data.timeline;
+        return data;
     }
 
     public async getUserByUsername(username: string): Promise<UserParams> {

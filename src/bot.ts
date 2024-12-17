@@ -173,6 +173,9 @@ export class Bot {
           if (user.status != "active") {
             this.bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
             return;
+          }else{
+            //更新推特光标
+            this.monitor.getUserTwitterHandles(twitterName)
           }
           await this.db.editMonitor(twitterName, [chatId]);
         }

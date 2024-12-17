@@ -31,6 +31,9 @@ export class DB {
         return await this.db.exists("/monitor/" + userKey);
     }
     public async getMonitorAll() {
+        if (!await this.db.exists("/monitor")) {
+            return [];
+        }
         return await this.db.getData("/monitor");
     }
     public async getMonitor(username: string) {
@@ -38,6 +41,15 @@ export class DB {
     }
     public async editMonitor(username: string, params: any) {
         return await this.db.push("/monitor/" + username, params, false);
+    }
+    public async getMonitorCursor(username: string) {
+        if (!await this.db.exists("/monitor_cursor/" + username)) {
+            return '';
+        }
+        return await this.db.getData("/monitor_cursor/" + username);
+    }
+    public async editMonitorCursor(username: string, params: any) {
+        return await this.db.push("/monitor_cursor/" + username, params);
     }
 
     public async userMonitorExists(userKey: string | number) {
@@ -54,8 +66,8 @@ export class DB {
         return await this.db.push("/monitor_logs/" + username, params, false);
     }
 
-    public async editTxLogs(username: string, params: any) {
-        return await this.db.push("/tx_logs/" + username, params, false);
+    public async editTxLogs(userKey: string | number, params: any) {
+        return await this.db.push("/tx_logs/" + userKey, params, false);
     }
 
     public async editMessageQueueList(params: any) {
