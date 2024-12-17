@@ -154,15 +154,27 @@ export class Monitor {
 
     // 增加用户到监控列表
     public async addUserToMonitor(userId: number, twitterName: string): Promise<void> {
+        var flag = false;
+        const user = await this.db.getUser(userId);
         for (const _monitoredData of this.monitoredData) {
             if (_monitoredData.monitorUser === twitterName) {
-                var user = await this.db.getUser(userId);
                 _monitoredData.userConfig.push({
                     userId: userId,
                     frequency: user.settingFrequency,
                     lastRunTime: Date.now(),
                 });
+                flag = true;
             }
+        }
+        if (!flag) {
+            this.monitoredData.push({
+                monitorUser: twitterName,
+                userConfig: [{
+                    userId: userId,
+                    frequency: user.settingFrequency,
+                    lastRunTime: Date.now(),
+                }],
+            });
         }
     }
 
