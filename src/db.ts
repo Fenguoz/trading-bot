@@ -58,8 +58,8 @@ export class DB {
     public async getUserMonitor(userKey: string | number) {
         return await this.db.getData("/user_monitor/" + userKey);
     }
-    public async editUserMonitor(userKey: string | number, params: any) {
-        return await this.db.push("/user_monitor/" + userKey, params, false);
+    public async editUserMonitor(userKey: string | number, params: any, override: boolean = false) {
+        return await this.db.push("/user_monitor/" + userKey, params, override);
     }
 
     public async editMonitorLogs(username: string, params: any) {
