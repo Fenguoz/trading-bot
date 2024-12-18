@@ -252,7 +252,7 @@ gas费：${user.settingGas} SOL
     await this.db.editUserMonitor(chatId, [twitterName]);
 
     if (!this.monitor.isUserMonitored(twitterName)) {
-      this.monitor.addUserToMonitor(chatId, twitterName);
+      this.monitor.addUserFromMonitor(chatId, twitterName);
       this.bot.sendMessage(chatId, `开始监控推特用户 @${twitterName}`);
     } else {
       this.bot.sendMessage(chatId, `你已经在监控 @${twitterName}`);
@@ -442,6 +442,18 @@ ${i + 1}. *@${monitors[i]}*`;
 
   // 取消全部监控
   async command_unmonitor_all(chatId: number, messageId: number) {
+    this.monitor.removeUserFromMonitorAll(chatId);
+
+    const monitors = await this.db.getUserMonitor(chatId);
+    for (var i = 0; i < monitors.length; i++) {
+      const chatIds = await this.db.getMonitor(monitors[i]);
+      if (chatIds.includes(chatId)) {
+        var index = chatIds.indexOf(chatId);
+        chatIds.splice(index, 1);
+        await this.db.editMonitor(monitors[i], chatIds, true);
+      }
+    }
+
     await this.db.editUserMonitor(chatId, [], true);
     this.bot.editMessageText(`已取消全部监控`, {
       chat_id: chatId,
@@ -452,7 +464,17 @@ ${i + 1}. *@${monitors[i]}*`;
 
   // 取消指定监控
   async command_unmonitor(chatId: number, messageId: number, twitterName: string) {
-    var monitors = await this.db.getUserMonitor(chatId);
+    //取消监控
+    this.monitor.removeUserFromMonitor(chatId, twitterName);
+
+    const chatIds = await this.db.getMonitor(twitterName);
+    if (chatIds.includes(chatId)) {
+      var index = chatIds.indexOf(chatId);
+      chatIds.splice(index, 1);
+      await this.db.editMonitor(twitterName, chatIds, true);
+    }
+
+    const monitors = await this.db.getUserMonitor(chatId);
     if (monitors.includes(twitterName)) {
       var index = monitors.indexOf(twitterName);
       monitors.splice(index, 1);

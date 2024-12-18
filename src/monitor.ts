@@ -152,8 +152,34 @@ export class Monitor {
         return false;
     }
 
+    // 移除用户从监控列表中
+    public async removeUserFromMonitor(userId: number, twitterName: string): Promise<void> {
+        for (const _monitoredData of this.monitoredData) {
+            if (_monitoredData.monitorUser === twitterName) {
+                for (const _userConfig of _monitoredData.userConfig) {
+                    if (_userConfig.userId === userId) {
+                        _monitoredData.userConfig.splice(_monitoredData.userConfig.indexOf(_userConfig), 1);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // 移除用户从所有监控列表中
+    public async removeUserFromMonitorAll(userId: number): Promise<void> {
+        for (const _monitoredData of this.monitoredData) {
+            for (const _userConfig of _monitoredData.userConfig) {
+                if (_userConfig.userId === userId) {
+                    _monitoredData.userConfig.splice(_monitoredData.userConfig.indexOf(_userConfig), 1);
+                    break;
+                }
+            }
+        }
+    }
+
     // 增加用户到监控列表
-    public async addUserToMonitor(userId: number, twitterName: string): Promise<void> {
+    public async addUserFromMonitor(userId: number, twitterName: string): Promise<void> {
         var flag = false;
         const user = await this.db.getUser(userId);
         for (const _monitoredData of this.monitoredData) {

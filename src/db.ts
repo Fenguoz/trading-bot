@@ -39,8 +39,8 @@ export class DB {
     public async getMonitor(username: string) {
         return await this.db.getData("/monitor/" + username);
     }
-    public async editMonitor(username: string, params: any) {
-        return await this.db.push("/monitor/" + username, params, false);
+    public async editMonitor(username: string, params: any, override: boolean = false) {
+        return await this.db.push("/monitor/" + username, params, override);
     }
     public async getMonitorCursor(username: string) {
         if (!await this.db.exists("/monitor_cursor/" + username)) {
