@@ -33,6 +33,8 @@ export class Monitor {
     public monitoredData: MonitoredData[] = []; // 存储用户的监控任务
     public userTwitterHandles: { [key: string | number]: string } = {};  // 存储用户 Telegram ID 和对应的推特用户名
 
+    // 编辑推特ID唯一锁
+    private twitterHandlesLock: string[] = [];
 
     constructor(twitter: Twitter, db: DB) {
         this.twitter = twitter
@@ -110,18 +112,21 @@ export class Monitor {
             const tweets: any = await this.getUserTwitterHandles(username);
             console.log('tweets', tweets);
             for (let tweet of tweets) {
+                // 判断当前推文是否执行 被锁
+                if (this.twitterHandlesLock.includes(tweet.tweet_id)) {
+                    console.log(`${Date.now()} monitor: ${username} tweet ${tweet.tweet_id} is locked`);
+                    continue;
+                }
+
+                // 锁定当前推文
+                this.twitterHandlesLock.push(tweet.tweet_id);
+
                 // 检查推文中是否包含 Solana 地址（简单通过公共地址的模式进行判断）
                 const solanaRegex = /[A-Za-z0-9]{32,44}/g;
                 var solanaAddresses = tweet.text.match(solanaRegex);
                 if (!solanaAddresses) {
                     continue;
                 }
-                // 测试数据
-                // var username = 'xiaomucrypto';
-                // var tweet = {
-                //     tweet_id: '1234567',
-                // };
-                // var solanaAddresses = ['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'];
 
                 //数组删除重复
                 solanaAddresses = solanaAddresses.filter((element: any, i: any) => i === solanaAddresses.indexOf(element))
@@ -135,8 +140,11 @@ export class Monitor {
                     }
 
                     await this.db.editMonitorLogs(username, { id: tweet.tweet_id, address: address, time: Date.now() });
-                    this.handleMonitor(username, address, validUsers);
+                    await this.handleMonitor(username, address, validUsers);
                 }
+
+                // 释放锁定当前推文
+                this.twitterHandlesLock.splice(this.twitterHandlesLock.indexOf(tweet.tweet_id), 1);
             }
         });
     }
@@ -213,7 +221,7 @@ export class Monitor {
             tasks.push(() => this.handleSwap(user, username, address));
         }
 
-        runMultitasking(Array.from(tasks), 8)
+        await runMultitasking(Array.from(tasks), 8)
             .then(async (results) => {
                 console.log(`${Date.now()} Monitor ${username} address ${address}:`, results)
             })
@@ -233,13 +241,15 @@ export class Monitor {
                 gas: parseFloat(userConfig.settingGas),
                 tip: parseFloat(userConfig.settingTip),
             });
+
+            const timestamp = Date.now();
             // 记录交易日志
-            await this.db.editTxLogs(user, { monitor: username, address: address, time: Date.now(), txId: txId });
+            await this.db.editTxLogs(user, { monitor: username, address: address, time: timestamp, txId: txId });
             // 添加消息提醒
-            await this.db.editMessageQueueList({
+            await this.db.editMessageQueue(timestamp, {
                 user: user,
                 type: 'swap-success',
-                time: Date.now(),
+                time: timestamp,
                 data: {
                     txId: txId,
                     monitor: username,
@@ -258,11 +268,12 @@ export class Monitor {
                 message = e.message // works, `e` narrowed to Error
             }
 
+            const timestamp = Date.now();
             // 添加消息提醒
-            await this.db.editMessageQueueList({
+            await this.db.editMessageQueue(timestamp, {
                 user: user,
                 type: 'swap-error',
-                time: Date.now(),
+                time: timestamp,
                 data: {
                     monitor: username,
                     address: address,

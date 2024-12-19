@@ -70,22 +70,13 @@ export class DB {
         return await this.db.push("/tx_logs/" + userKey, params, false);
     }
 
-    public async editMessageQueueList(params: any) {
-        return await this.db.push("/message_queue/list", [params], false);
+    public async editMessageQueue(key: string | number, params: any) {
+        return await this.db.push("/message_queue/" + key, params, false);
     }
-    public async getMessageQueueByKey(params: any) {
-        if (!await this.db.exists("/message_queue/list/" + params)) {
-            return null;
-        }
-        return await this.db.getData("/message_queue/list/" + params);
+    public async delMessageQueue(key: string | number) {
+        return await this.db.delete("/message_queue/" + key);
     }
-    public async getMessageQueueRunKey() {
-        if (!await this.db.exists("/message_queue/runKey")) {
-            return 0;
-        }
-        return await this.db.getData("/message_queue/runKey");
-    }
-    public async editMessageQueueRunKey(params: any) {
-        return await this.db.push("/message_queue/runKey", params);
+    public async getMessageQueueAll() {
+        return await this.db.getData("/message_queue");
     }
 }
