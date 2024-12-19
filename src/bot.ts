@@ -168,7 +168,7 @@ export class Bot {
     this.bot.sendMessage(chatId, message, option);
   }
 
-  async command_message(chatId: number, receivedMessage: string) {
+  async command_message(chatId: number, messageId: number, receivedMessage: string) {
     var state = await this.db.getUserState(chatId)
     console.log('state', state)
     if (state == 'settingAmount' || state == 'settingGas' || state == 'settingFrequency' || state == 'settingSlippage' || state == 'settingTip') {
