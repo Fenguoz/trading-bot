@@ -230,13 +230,22 @@ gas费：${user.settingGas} SOL
     //如果Db中monitor不存在，就创建一个
     if (!await this.db.monitorExists(twitterName)) {
       // 检查推特用户是否存在
-      const user = await this.twitter.getUserByUsername(twitterName);
+      try {
+        const user = await this.twitter.getUserByUsername(twitterName);
+      } catch (e) {
+        this.bot.sendMessage(chatId, `网络异常，请稍后重试`);
+        return;
+      }
       if (user.status != "active") {
         this.bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
         return;
       }
     }
-    await this.db.editMonitor(twitterName, [chatId]);
+    const users = await this.db.getMonitor(twitterName);
+    // 判断是否存在
+    if (!users.includes(chatId)) {
+      await this.db.editMonitor(twitterName, [chatId]);
+    }
 
     // 检查用户是否已经在监控列表中
     if (await this.db.userMonitorExists(chatId)) {
@@ -481,13 +490,13 @@ ${i + 1}. *@${monitors[i]}*`;
       monitors.splice(index, 1);
       await this.db.editUserMonitor(chatId, monitors, true);
 
-      this.bot.editMessageText(`已取消监控 @${twitterName}`, {
+      this.bot.editMessageText(`已取消监控 *@${twitterName}*`, {
         chat_id: chatId,
         message_id: messageId,
         parse_mode: 'Markdown',
       });
     } else {
-      this.bot.editMessageText(`你没有监控 @${twitterName}`, {
+      this.bot.editMessageText(`你没有监控 *@${twitterName}*`, {
         chat_id: chatId,
         message_id: messageId,
         parse_mode: 'Markdown',
