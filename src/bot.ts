@@ -236,7 +236,7 @@ gas费：${user.settingGas} SOL
         return;
       } else {
         //更新推特光标
-        this.monitor.getUserTwitterHandles(twitterName)
+        await this.monitor.getUserTwitterHandles(twitterName)
       }
       await this.db.editMonitor(twitterName, [chatId]);
     }
@@ -252,7 +252,7 @@ gas费：${user.settingGas} SOL
     await this.db.editUserMonitor(chatId, [twitterName]);
 
     if (!this.monitor.isUserMonitored(twitterName)) {
-      this.monitor.addUserFromMonitor(chatId, twitterName);
+      await this.monitor.addUserFromMonitor(chatId, twitterName);
       this.bot.sendMessage(chatId, `开始监控推特用户 @${twitterName}`);
     } else {
       this.bot.sendMessage(chatId, `你已经在监控 @${twitterName}`);
