@@ -150,11 +150,15 @@ export class Monitor {
     }
 
     // 验证用户是否在监控列表中
-    public isUserMonitored(twitterName: string): boolean {
+    public isUserMonitored(userId: number, twitterName: string): boolean {
         // 检查用户是否在监控列表中
         for (const _monitoredData of this.monitoredData) {
             if (_monitoredData.monitorUser === twitterName) {
-                return true;
+                for (const _userConfig of _monitoredData.userConfig) {
+                    if (_userConfig.userId === userId) {
+                        return true;
+                    }
+                }
             }
         }
         return false;

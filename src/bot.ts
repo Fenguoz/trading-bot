@@ -261,7 +261,7 @@ gas费：${user.settingGas} SOL
 
     await this.db.editUserMonitor(chatId, [twitterName]);
 
-    if (!this.monitor.isUserMonitored(twitterName)) {
+    if (!this.monitor.isUserMonitored(chatId, twitterName)) {
       await this.monitor.addUserFromMonitor(chatId, twitterName);
       this.bot.sendMessage(chatId, `开始监控推特用户 @${twitterName}`);
     } else {
