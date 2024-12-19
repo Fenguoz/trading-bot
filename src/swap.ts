@@ -48,7 +48,6 @@ export interface SwapConfig {
 export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) => {
   const inputMint = NATIVE_MINT.toBase58()
   const outputMint = address
-  // const outputMint = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // RAY
   const amount = config.amount * LAMPORTS_PER_SOL // in lamports
   const slippage = config.slippage // in percent, for this example, 0.5 means 0.5%
   const txVersion: string = 'V0' // or LEGACY
@@ -94,6 +93,10 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     , {
       // httpsAgent: agent,
     })
+
+  if (swapResponse.success === false) {
+    throw new Error('Swap error: ' + swapResponse.msg);
+  }
   console.log('swapResponse', swapResponse)
 
   const { data: swapTransactions } = await axios.post<{
@@ -101,6 +104,7 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     version: string
     success: boolean
     data: { transaction: string }[]
+    msg?: string
   }>(`${API_URLS.SWAP_HOST}/transaction/swap-base-in`, {
     computeUnitPriceMicroLamports: String(data.data.default.h),
     swapResponse,
@@ -114,7 +118,10 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     // httpsAgent: agent,
   })
 
-  // console.log('swapTransactions', swapTransactions.data)
+  if (swapTransactions.success === false) {
+    throw new Error('Swap tx error: ' + swapTransactions.msg);
+  }
+  
   const allTxBuf = swapTransactions.data.map((tx) => Buffer.from(tx.transaction, 'base64'))
   const allTransactions = allTxBuf.map((txBuf) => VersionedTransaction.deserialize(txBuf))
 
