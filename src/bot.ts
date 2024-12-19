@@ -235,8 +235,8 @@ gas费：${user.settingGas} SOL
         this.bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
         return;
       }
-      await this.db.editMonitor(twitterName, [chatId]);
     }
+    await this.db.editMonitor(twitterName, [chatId]);
 
     // 检查用户是否已经在监控列表中
     if (await this.db.userMonitorExists(chatId)) {
