@@ -232,12 +232,12 @@ gas费：${user.settingGas} SOL
       // 检查推特用户是否存在
       try {
         const user = await this.twitter.getUserByUsername(twitterName);
+        if (user.status != "active") {
+          this.bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
+          return;
+        }
       } catch (e) {
         this.bot.sendMessage(chatId, `网络异常，请稍后重试`);
-        return;
-      }
-      if (user.status != "active") {
-        this.bot.sendMessage(chatId, `推特用户 @${twitterName} 不存在`);
         return;
       }
     }
