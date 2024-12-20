@@ -37,6 +37,9 @@ export class DB {
         return await this.db.getData("/monitor");
     }
     public async getMonitor(username: string) {
+        if (!await this.db.exists("/monitor/" + username)) {
+            return [];
+        }
         return await this.db.getData("/monitor/" + username);
     }
     public async editMonitor(username: string, params: any, override: boolean = false) {
