@@ -111,11 +111,16 @@ export class Monitor {
             console.log(`${Date.now()} monitor: ${username} start`);
             const tweets: any = await this.getUserTwitterHandles(username);
             console.log('tweets', tweets);
+            var latestTweetId = await this.db.getMonitorTwitterCursor(username);
             for (let tweet of tweets) {
                 // 判断当前推文是否执行 被锁
                 if (this.twitterHandlesLock.includes(tweet.tweet_id)) {
                     console.log(`${Date.now()} monitor: ${username} tweet ${tweet.tweet_id} is locked`);
                     continue;
+                }
+                // 检查当前推文是否已经处理过
+                if (latestTweetId && tweet.tweet_id <= latestTweetId) {
+                    return;
                 }
 
                 // 锁定当前推文
@@ -288,12 +293,14 @@ export class Monitor {
         }
     }
 
-    async getUserTwitterHandles(username: string) {
-
+    async getUserTwitterHandles(username: string, isRefresh: boolean = false) {
         const cursor = await this.db.getMonitorCursor(username);
         const data: any = await this.twitter.fetchTwitterUserTweets(username, cursor);
         if (data.timeline.length > 0) {
-            this.db.editMonitorCursor(username, data.prev_cursor)
+            await this.db.editMonitorCursor(username, data.prev_cursor)
+            if (isRefresh) {
+                await this.db.editMonitorTwitterCursor(username, data.timeline[0].tweet_id)
+            }
         }
         return data.timeline;
     }

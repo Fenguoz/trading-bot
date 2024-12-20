@@ -51,6 +51,15 @@ export class DB {
     public async editMonitorCursor(username: string, params: any) {
         return await this.db.push("/monitor_cursor/" + username, params);
     }
+    public async getMonitorTwitterCursor(username: string) {
+        if (!await this.db.exists("/monitor_twitter_cursor/" + username)) {
+            return '';
+        }
+        return await this.db.getData("/monitor_twitter_cursor/" + username);
+    }
+    public async editMonitorTwitterCursor(username: string, params: any) {
+        return await this.db.push("/monitor_twitter_cursor/" + username, params);
+    }
 
     public async userMonitorExists(userKey: string | number) {
         return await this.db.exists("/user_monitor/" + userKey);

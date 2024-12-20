@@ -257,7 +257,7 @@ gas费：${user.settingGas} SOL
     }
 
     //更新推特光标
-    await this.monitor.getUserTwitterHandles(twitterName)
+    await this.monitor.getUserTwitterHandles(twitterName, true)
 
     await this.db.editUserMonitor(chatId, [twitterName]);
 
