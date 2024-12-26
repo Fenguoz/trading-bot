@@ -17,7 +17,6 @@
   "dependencies": {
     "@raydium-io/raydium-sdk-v2": "^0.1.94-alpha",
     "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.95.8",
     "axios": "^1.7.9",
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7",
@@ -28,6 +27,7 @@
     "twitter-api-v2": "^1.18.2"
   },
   "devDependencies": {
+    "@types/bn.js": "^5.1.6",
     "@types/node": "^22.10.1",
     "@types/node-telegram-bot-api": "^0.64.7",
     "ts-node": "^10.9.2",
