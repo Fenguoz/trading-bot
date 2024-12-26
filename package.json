@@ -15,6 +15,7 @@
     "start": "ts-node ./src/index.ts"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
     "@raydium-io/raydium-sdk-v2": "^0.1.94-alpha",
     "@solana/spl-token": "^0.4.9",
     "axios": "^1.7.9",
