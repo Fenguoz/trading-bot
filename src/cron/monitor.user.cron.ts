@@ -158,8 +158,8 @@ export const getUserTwitterHandles = async (username: string, isRefresh: boolean
   if (data.timeline.length > 0) {
     // 更新用户的 cursor
     if (isRefresh) {
-      await UserService.updateOne({
-        username,
+      await MonitorService.updateOne({
+        id,
         monitor_cursor: data.prev_cursor,
         monitor_tweet_id: data.timeline[0].tweet_id,
       });

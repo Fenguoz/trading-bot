@@ -22,7 +22,7 @@ export const MonitorService = {
   findOne: async (props: any) => {
     try {
       const filter = props;
-      const result = await MonitorSchema.findOne({ ...filter, retired: false });
+      const result = await MonitorSchema.findOne({ ...filter });
 
       return result;
     } catch (err: any) {
