@@ -107,6 +107,10 @@ const User = new Schema(
       type: String,
       default: "30",
     },
+    frequency: {
+      type: String,
+      default: "4",
+    },
   },
   {
     timestamps: true, // This option adds createdAt and updatedAt fields

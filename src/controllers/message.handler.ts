@@ -7,6 +7,7 @@ import {
   BUY_XSOL_TEXT,
   PRESET_BUY_TEXT,
   SELL_XPRO_TEXT,
+  SET_FREQUENCY_TEXT,
   SET_GAS_FEE,
   SET_JITO_FEE,
   SET_SLIPPAGE_TEXT,
@@ -28,6 +29,7 @@ import {
   setCustomBuyPresetHandler,
   setCustomFeeHandler,
   setCustomJitoFeeHandler,
+  setFrequencyHandler,
 } from "../screens/settings.screen";
 import { setMonitorHandler } from "../screens/monitor.screen";
 
@@ -59,6 +61,8 @@ export const messageHandler = async (
           //   await withdrawHandler(bot, msg, messageText, reply_message_id);
         } else if (text === SET_SLIPPAGE_TEXT.replace(/<[^>]*>/g, "")) {
           await setSlippageHandler(bot, msg, amount, reply_message_id);
+        } else if (text === SET_FREQUENCY_TEXT.replace(/<[^>]*>/g, "")) {
+          await setFrequencyHandler(bot, msg, amount, reply_message_id);
         } else if (text === PRESET_BUY_TEXT.replace(/<[^>]*>/g, "")) {
           await setCustomBuyPresetHandler(bot, msg, amount, reply_message_id);
         } else if (text === AUTO_BUY_TEXT.replace(/<[^>]*>/g, "")) {

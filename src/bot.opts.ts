@@ -11,6 +11,7 @@ export const AUTO_BUY_TEXT = `🌳Auto Buy SOL Button \n\n<i>💲 Enter SOL Valu
 export const SELL_XPRO_TEXT = `🌳Sell X %\n\n<i>💲 Enter X Value in format "25.5"</i>`;
 export const WITHDRAW_XTOKEN_TEXT = `🌳Withdraw X token\n\n<i>💲 Enter X Value in format "25.5"</i>`;
 export const SET_SLIPPAGE_TEXT = `🌳Slippage X %\n\n<i>💲 Enter X Value in format "2.5"</i>`;
+export const SET_FREQUENCY_TEXT = `🌳 速率\n\n<i>💲 请输入速率值，例如"4"</i>`;
 export const TradeBotID = process.env.GROWTRADE_BOT_ID;
 export const WELCOME_REFERRAL = 'https://imgtr.ee/images/2024/04/22/24635465dd390956e0fb39857a66bab5.png';
 export const BridgeBotID = process.env.BridgeBotID;

@@ -15,6 +15,7 @@ import redisClient from "../services/redis";
 import {
   AUTO_BUY_TEXT,
   PRESET_BUY_TEXT,
+  SET_FREQUENCY_TEXT,
   SET_GAS_FEE,
   SET_JITO_FEE,
   TradeBotID,
@@ -563,15 +564,14 @@ export const changeGasFeeHandler = async (
   let inline_keyboard = reply_markup.inline_keyboard;
   inline_keyboard[6] = [
     {
-      text: `🔁 ${
-        nextFeeOption === GasFeeEnum.HIGH
-          ? "High"
-          : nextFeeOption === GasFeeEnum.MEDIUM
+      text: `🔁 ${nextFeeOption === GasFeeEnum.HIGH
+        ? "High"
+        : nextFeeOption === GasFeeEnum.MEDIUM
           ? "Medium"
           : nextFeeOption === GasFeeEnum.LOW
-          ? "Low"
-          : "custom"
-      }`,
+            ? "Low"
+            : "custom"
+        }`,
       callback_data: JSON.stringify({
         command: `switch_gas`,
       }),
@@ -771,9 +771,8 @@ export const switchBurnOptsHandler = async (
             };
           }
           if (item.text.includes("Burn")) {
-            const burnText = `${
-              !user.burn_fee ? "Burn: On 🔥" : "Burn: Off ♨️"
-            }`;
+            const burnText = `${!user.burn_fee ? "Burn: On 🔥" : "Burn: Off ♨️"
+              }`;
             return {
               text: burnText,
               callback_data: JSON.stringify({
@@ -849,6 +848,8 @@ export const getReplyOptionsForSettings = async (
   auto_buy: boolean,
   auto_buy_amount: string
 ) => {
+  const frequency = await UserService.getFrequency( username );
+
   // Slippage
   const slippageSetting = await UserTradeSettingService.getSlippage(username);
 
@@ -877,10 +878,16 @@ export const getReplyOptionsForSettings = async (
         },
       ],
       [
+        // {
+        //   text: "♻️ Withdraw",
+        //   callback_data: JSON.stringify({
+        //     command: `transfer_funds`,
+        //   }),
+        // },
         {
-          text: "♻️ Withdraw",
+          text: `🔍 速率: ${frequency}`,
           callback_data: JSON.stringify({
-            command: `transfer_funds`,
+            command: `set_frequency`,
           }),
         },
         {
@@ -936,15 +943,14 @@ export const getReplyOptionsForSettings = async (
       ],
       [
         {
-          text: `🔁 ${
-            gasSetting.gas === GasFeeEnum.HIGH
-              ? "high"
-              : gasSetting.gas === GasFeeEnum.MEDIUM
+          text: `🔁 ${gasSetting.gas === GasFeeEnum.HIGH
+            ? "high"
+            : gasSetting.gas === GasFeeEnum.MEDIUM
               ? "medium"
               : gasSetting.gas === GasFeeEnum.LOW
-              ? "low"
-              : "custom"
-          }`,
+                ? "low"
+                : "custom"
+            }`,
           callback_data: JSON.stringify({
             command: "switch_gas",
           }),
@@ -1265,3 +1271,73 @@ export const setCustomJitoFeeHandler = async (
 //     console.log("~ refresh handler ~", e);
 //   }
 // };
+
+export const setFrequencyScreenHandler = async (
+  bot: TelegramBot,
+  msg: TelegramBot.Message
+) => {
+  try {
+    const chat_id = msg.chat.id;
+    const username = msg.chat.username;
+    if (!username) return;
+    const user = await UserService.findOne({ username });
+    if (!user) return;
+
+    const sentMessage = await bot.sendMessage(chat_id, SET_FREQUENCY_TEXT, {
+      parse_mode: "HTML",
+      reply_markup: {
+        force_reply: true,
+      },
+    });
+
+    await MsgLogService.create({
+      username,
+      mint: "frequency",
+      wallet_address: user.wallet_address,
+      chat_id,
+      msg_id: sentMessage.message_id,
+      parent_msgid: msg.message_id,
+    });
+  } catch (e) {
+    console.log("~setFrequencyScreenHandler~", e);
+  }
+};
+
+export const setFrequencyHandler = async (
+  bot: TelegramBot,
+  msg: TelegramBot.Message,
+  frequency: number,
+  reply_message_id: number
+) => {
+  const chat_id = msg.chat.id;
+  const username = msg.chat.username;
+  if (!username) return;
+
+  //获取父ID
+  const msglog = await MsgLogService.findOne({
+    username,
+    msg_id: reply_message_id,
+  });
+  if (!msglog) return;
+  const { mint, parent_msgid, msg_id } = msglog;
+
+  if (!mint) return;
+
+  await UserService.setFrequency(username, frequency);
+  
+  const sentSuccessMsg = await bot.sendMessage(
+    chat_id,
+    "速率修改成功!"
+  );
+
+  settingScreenHandler(bot, msg, parent_msgid);
+  setTimeout(() => {
+    bot.deleteMessage(chat_id, sentSuccessMsg.message_id);
+  }, 3000);
+
+  setTimeout(() => {
+    // bot.deleteMessage(chat_id, reply_message_id - 1);
+    bot.deleteMessage(chat_id, reply_message_id);
+    bot.deleteMessage(chat_id, msg.message_id);
+  }, 2000);
+};

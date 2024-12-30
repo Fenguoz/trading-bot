@@ -31,5 +31,4 @@ A (Solana) trading bot that monitors (Twitter, Telegram users)
 5.新增监控电报频道，每秒消耗0.1个积分
 6.邀请新用户，可获取新用户获取的积分的10%奖励+交易手续费奖励
 
-速率
 监控任务

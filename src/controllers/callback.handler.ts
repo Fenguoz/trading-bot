@@ -34,6 +34,7 @@ import {
   setCustomAutoBuyAmountHandler,
   setCustomFeeScreenHandler,
   setCustomJitoFeeScreenHandler,
+  setFrequencyScreenHandler,
   settingScreenHandler,
   switchAutoBuyOptsHandler,
   switchBurnOptsHandler,
@@ -232,6 +233,10 @@ export const callbackQueryHandler = async (
     }
     if (data.command.includes("set_slippage")) {
       await setSlippageScreenHandler(bot, callbackMessage);
+      return;
+    }
+    if (data.command.includes("set_frequency")) {
+      await setFrequencyScreenHandler(bot, callbackMessage);
       return;
     }
     if (data.command.includes("preset_setting")) {

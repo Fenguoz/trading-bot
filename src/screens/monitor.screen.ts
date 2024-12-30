@@ -12,13 +12,14 @@ export const MonitorScreenHandler = async (
   msg: TelegramBot.Message
 ) => {
   try {
-    const { id: chat_id } = msg.chat;
-
-    //获取用户监控列表
-    const userMonitors = await UserMonitorService.find({ chat_id });
+    const { id: chat_id, username } = msg.chat;
+    if (!username) {
+      return;
+    }
+    const frequency = await UserService.getFrequency(username);
 
     const caption = `<b>LeekTrade</b>\n\n` +
-      `<b>您当前监控速率: ${userMonitors.length} </b>\n\n` +
+      `<b>您当前监控速率: ${frequency} </b>\n\n` +
       `速率：是指每隔几秒查询一次\n` +
       `查询一次1积分\n` +
       `例如 4 就是每隔4秒查询一次\n` +

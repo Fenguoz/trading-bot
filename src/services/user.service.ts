@@ -1,4 +1,5 @@
 import { UserSchema } from "../models/index";
+import redisClient from "./redis";
 
 export const UserService = {
   create: async (props: any) => {
@@ -102,11 +103,29 @@ export const UserService = {
 
   extractPNLdata: (text: string): any => {
     const words = text.split(' ');
-    if(words.length > 1){
-      if(words[1].endsWith('png')){
+    if (words.length > 1) {
+      if (words[1].endsWith('png')) {
         return words[1].replace('png', '.png');
       }
     }
-  }
+  },
+  setFrequency: async (username: string, frequency: number) => {
+    const key = `${username}_frequency`;
+    await redisClient.set(key, frequency);
 
+    const result = await UserSchema.updateMany({ username }, {
+      $set: { frequency }
+    });
+    return result;
+  },
+  getFrequency: async (username: string) => {
+    const key = `${username}_frequency`;
+    const data = await redisClient.get(key);
+    if (data) return data;
+
+    const result = await UserSchema.findOne({ username });
+    const frequency = result?.frequency ?? "4";
+    redisClient.set(key, frequency);
+    return frequency;
+  },
 };
