@@ -7,6 +7,7 @@ import { WelcomeScreenHandler } from "./screens/welcome.screen";
 import { UserService } from "./services/user.service";
 import { settingScreenHandler } from "./screens/settings.screen";
 import { MonitorScreenHandler } from "./screens/monitor.screen";
+import { runMonitorUserSchedule } from "./cron/monitor.user.cron";
 
 const token = TELEGRAM_BOT_API_TOKEN;
 
@@ -31,6 +32,7 @@ const startTradeBot = () => {
       url: "https://api.telegram.org",
     }
   });
+  runMonitorUserSchedule();
   bot.setMyCommands(BotMenu);
 
   // bot callback

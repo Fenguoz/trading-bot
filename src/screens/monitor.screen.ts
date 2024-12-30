@@ -6,6 +6,7 @@ import { UserService } from "../services/user.service";
 import { sendUsernameRequiredNotification } from "./common.screen";
 import { MonitorService } from "../services/monitor.service";
 import { getUserByUsername } from "../services/twitter.service";
+import { addUserFromMonitor, getUserTwitterHandles, isUserMonitored, removeUserFromMonitor } from "../cron/monitor.user.cron";
 
 export const MonitorScreenHandler = async (
   bot: TelegramBot,
@@ -88,7 +89,6 @@ export const setMonitorHandler = async (
       const username = monitor_string.split("/")[3];
       monitor_name = username;
     }
-    console.log("~ monitor_name ~", monitor_name);
 
     //如果Db中monitor不存在，就创建一个
     const monitor = await MonitorService.findOne({ monitor_name });
@@ -102,6 +102,7 @@ export const setMonitorHandler = async (
         }
         await MonitorService.create({
           monitor_name,
+          monitor_id: user.id,
           type,
         });
       } catch (e) {
@@ -123,11 +124,11 @@ export const setMonitorHandler = async (
       status: true,
     });
 
-    // //更新推特光标
-    // await this.monitor.getUserTwitterHandles(monitor_name, true)
-    // if (!this.monitor.isUserMonitored(chatId, monitor_name)) {
-    //   await this.monitor.addUserFromMonitor(chatId, monitor_name);
-    // }
+    //更新推特光标
+    await getUserTwitterHandles(monitor_name, true)
+    if (!isUserMonitored(chat_id, monitor_name)) {
+      await addUserFromMonitor(chat_id, monitor_name);
+    }
 
     const sentSuccessMsg = await bot.sendMessage(
       chat_id,
@@ -142,9 +143,6 @@ export const setMonitorHandler = async (
       chat_id,
       msg_id: reply_message_id,
     });
-    console.log("~ reply_message_id ~", reply_message_id);
-    console.log("~ message_id ~", msg.message_id);
-    console.log("~ log ~", log);
 
     setTimeout(() => {
       bot.deleteMessage(chat_id, sentSuccessMsg.message_id);
@@ -237,6 +235,18 @@ export const useMonitorHandler = async (
     const userMonitor = await UserMonitorService.findOne({ chat_id, monitor_name });
     if (!userMonitor) return;
 
+    //更新推特光标
+    if (!userMonitor.status) {
+      await getUserTwitterHandles(monitor_name, true)
+      if (!await isUserMonitored(chat_id, monitor_name)) {
+        await addUserFromMonitor(chat_id, monitor_name);
+      }
+    } else {
+      if (await isUserMonitored(chat_id, monitor_name)) {
+        await removeUserFromMonitor(chat_id, monitor_name);
+      }
+    }
+
     await UserMonitorService.updateOne({
       id: userMonitor.id,
       status: !userMonitor.status
@@ -261,6 +271,11 @@ export const delMonitorHandler = async (
 ) => {
   try {
     const { id: chat_id } = msg.chat;
+
+    if (await isUserMonitored(chat_id, monitor_name)) {
+      await removeUserFromMonitor(chat_id, monitor_name);
+    }
+
     const userMonitor = await UserMonitorService.deleteOne({ chat_id, monitor_name });
     if (!userMonitor) return;
 

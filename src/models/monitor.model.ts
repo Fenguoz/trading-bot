@@ -19,6 +19,10 @@ const Monitor = new Schema(
       type: String,
       default: "",
     },
+    monitor_tweet_id: {
+      type: String,
+      default: "",
+    },
     type: {
       type: String,
       default: 'twiiter',

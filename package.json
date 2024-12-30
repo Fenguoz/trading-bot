@@ -27,6 +27,7 @@
     "dotenv": "^16.4.7",
     "https-proxy-agent": "^7.0.6",
     "mongoose": "^8.9.2",
+    "node-cron": "^3.0.3",
     "node-json-db": "^2.3.0",
     "node-telegram-bot-api": "^0.66.0",
     "redis": "^4.7.0",
@@ -35,6 +36,7 @@
   "devDependencies": {
     "@types/bn.js": "^5.1.6",
     "@types/node": "^22.10.1",
+    "@types/node-cron": "^3.0.11",
     "@types/node-telegram-bot-api": "^0.64.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
