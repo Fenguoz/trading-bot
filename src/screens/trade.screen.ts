@@ -185,7 +185,7 @@ export const buyHandler = async (
   if (!msglog) return;
   const { mint, sol_amount } = msglog;
 
-  const gassetting = await UserTradeSettingService.getGas(username);
+  const gassetting = await UserTradeSettingService.getGas(chat_id);
   console.log("Buy2:", Date.now());
 
   const gasvalue = UserTradeSettingService.getGasValue(gassetting);
@@ -301,7 +301,7 @@ export const buyHandler = async (
   console.log("Buy3:", Date.now());
 
   const { slippage } = await UserTradeSettingService.getSlippage(
-    username
+    chat_id
     // mint
   );
   console.log("Buy start:", Date.now());
@@ -320,7 +320,7 @@ export const buyHandler = async (
         gasvalue,
         slippage,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       )
     : isRaydium
@@ -334,7 +334,7 @@ export const buyHandler = async (
         slippage,
         gasvalue,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       )
     : await jupiterSerivce.swapToken(
@@ -346,7 +346,7 @@ export const buyHandler = async (
         slippage,
         gasvalue,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       );
 
@@ -537,7 +537,7 @@ export const autoBuyHandler = async (
         gasvalue,
         slippage,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       )
     : isRaydium
@@ -550,7 +550,7 @@ export const autoBuyHandler = async (
         slippage,
         gasvalue,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       )
     : await jupiterSerivce.swapToken(
@@ -562,7 +562,7 @@ export const autoBuyHandler = async (
         slippage,
         gasvalue,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       );
 
@@ -758,10 +758,10 @@ export const sellHandler = async (
 
   // sell token
   const { slippage } = await UserTradeSettingService.getSlippage(
-    username
+    chat_id
     // mint
   );
-  const gassetting = await UserTradeSettingService.getGas(username);
+  const gassetting = await UserTradeSettingService.getGas(chat_id);
   const gasvalue = UserTradeSettingService.getGasValue(gassetting);
   const raydiumService = new RaydiumSwapService();
   // const jupiterSerivce = new JupiterService();
@@ -775,7 +775,7 @@ export const sellHandler = async (
         gasvalue,
         slippage,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       )
     : isRaydium
@@ -788,7 +788,7 @@ export const sellHandler = async (
         slippage,
         gasvalue,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       )
     : await jupiterSerivce.swapToken(
@@ -800,7 +800,7 @@ export const sellHandler = async (
         slippage,
         gasvalue,
         user.burn_fee ?? true,
-        username,
+        chat_id,
         isToken2022
       );
 
@@ -906,7 +906,7 @@ export const setSlippageHandler = async (
 
   if (!mint) return;
   // mint,
-  await UserTradeSettingService.setSlippage(username, {
+  await UserTradeSettingService.setSlippage(chat_id, {
     slippage: percent,
     slippagebps: percent * 100,
   });
@@ -916,7 +916,7 @@ export const setSlippageHandler = async (
   const { auto_buy, auto_buy_amount } = user;
 
   const reply_markup = await getReplyOptionsForSettings(
-    username,
+    chat_id,
     auto_buy,
     auto_buy_amount
   );

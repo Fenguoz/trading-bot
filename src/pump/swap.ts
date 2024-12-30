@@ -11,7 +11,7 @@ export async function pumpFunSwap(
   gasFee: number,
   _slippage: number,
   isFeeBurn: boolean,
-  username: string,
+  chat_id: number,
   isToken2022: boolean
 ) {
   try {

@@ -92,7 +92,7 @@ export class JupiterService {
     _slippage: number,
     gasFee: number,
     isFeeBurn: boolean,
-    username: string,
+    chat_id: number,
     isToken2022: boolean
   ) {
     try {
@@ -101,7 +101,7 @@ export class JupiterService {
       const is_buy = inputMint === NATIVE_MINT.toString();
 
       // JitoFee
-      const jitoFeeSetting = await UserTradeSettingService.getJitoFee(username);
+      const jitoFeeSetting = await UserTradeSettingService.getJitoFee(chat_id);
       const jitoFeeValue = UserTradeSettingService.getJitoFeeValue(jitoFeeSetting);
       const jitoFeeValueWei = BigInt((jitoFeeValue * 10 ** 9).toFixed());
 
@@ -191,7 +191,7 @@ export class JupiterService {
       const feeInstructions = await (new FeeService()).getFeeInstructions(
         total_fee_in_sol,
         total_fee_in_token,
-        username,
+        chat_id,
         pk,
         is_buy ? outputMint : inputMint,
         isToken2022

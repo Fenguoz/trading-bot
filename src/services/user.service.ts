@@ -109,23 +109,23 @@ export const UserService = {
       }
     }
   },
-  setFrequency: async (username: string, frequency: number) => {
-    const key = `${username}_frequency`;
+  setFrequency: async (chat_id: number, frequency: number) => {
+    const key = `${chat_id}_frequency`;
     await redisClient.set(key, frequency);
 
-    const result = await UserSchema.updateMany({ username }, {
+    const result = await UserSchema.updateMany({ chat_id }, {
       $set: { frequency }
     });
     return result;
   },
-  getFrequency: async (username: string) => {
-    const key = `${username}_frequency`;
+  getFrequency: async (chat_id: number) => {
+    const key = `${chat_id}_frequency`;
     const data = await redisClient.get(key);
-    if (data) return data;
+    if (data) return parseInt(data);
 
-    const result = await UserSchema.findOne({ username });
-    const frequency = result?.frequency ?? "4";
+    const result = await UserSchema.findOne({ chat_id });
+    const frequency = result?.frequency ?? '4';
     redisClient.set(key, frequency);
-    return frequency;
+    return parseInt(frequency);
   },
 };

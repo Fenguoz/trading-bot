@@ -18,7 +18,8 @@ export class FeeService {
   async getFeeInstructions(
     total_fee_in_sol: number,
     total_fee_in_token: number,
-    username: string,
+    chat_id: number,
+    // username: string,
     pk: string,
     mint: string,
     isToken2022: boolean

@@ -12,11 +12,8 @@ export const MonitorScreenHandler = async (
   msg: TelegramBot.Message
 ) => {
   try {
-    const { id: chat_id, username } = msg.chat;
-    if (!username) {
-      return;
-    }
-    const frequency = await UserService.getFrequency(username);
+    const { id: chat_id } = msg.chat;
+    const frequency = await UserService.getFrequency(chat_id);
 
     const caption = `<b>LeekTrade</b>\n\n` +
       `<b>您当前监控速率: ${frequency} </b>\n\n` +

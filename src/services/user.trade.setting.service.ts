@@ -21,9 +21,9 @@ export enum JitoFeeEnum {
 
 export const UserTradeSettingService = {
   // , mint: string
-  getSlippage: async (username: string) => {
+  getSlippage: async (chat_id: number) => {
     // const key = `${username}_${mint}`;
-    const key = `${username}_slippage`;
+    const key = `${chat_id}_slippage`;
     const data = await redisClient.get(key);
     if (data) return JSON.parse(data) as ITradeSlippageSetting;
     return {
@@ -32,9 +32,9 @@ export const UserTradeSettingService = {
     } as ITradeSlippageSetting
   },
   // , mint: string
-  setSlippage: async (username: string, opts: ITradeSlippageSetting) => {
+  setSlippage: async (chat_id: number, opts: ITradeSlippageSetting) => {
     // const key = `${username}_${mint}`;
-    const key = `${username}_slippage`;
+    const key = `${chat_id}_slippage`;
     await redisClient.set(key, JSON.stringify(opts));
   },
   getGasInlineKeyboard: async (gasfee: GasFeeEnum) => {
@@ -59,12 +59,12 @@ export const UserTradeSettingService = {
     return 0.005; // SOL
   },
 
-  setGas: async (username: string, opts: ITradeGasSetting) => {
-    const key = `${username}_gasfee`;
+  setGas: async (chat_id: number, opts: ITradeGasSetting) => {
+    const key = `${chat_id}_gasfee`;
     await redisClient.set(key, JSON.stringify(opts));
   },
-  getGas: async (username: string) => {
-    const key = `${username}_gasfee`;
+  getGas: async (chat_id: number) => {
+    const key = `${chat_id}_gasfee`;
     const data = await redisClient.get(key);
     if (data) return JSON.parse(data) as ITradeGasSetting;
     return {
@@ -98,12 +98,12 @@ export const UserTradeSettingService = {
     }
   },
 
-  setJitoFee: async (username: string, opts: ITradeJioFeeSetting) => {
-    const key = `${username}_jitofee`;
+  setJitoFee: async (chat_id: number, opts: ITradeJioFeeSetting) => {
+    const key = `${chat_id}_jitofee`;
     await redisClient.set(key, JSON.stringify(opts));
   },
-  getJitoFee: async (username: string) => {
-    const key = `${username}_jitofee`;
+  getJitoFee: async (chat_id: number) => {
+    const key = `${chat_id}_jitofee`;
     const data = await redisClient.get(key);
     if (data) return JSON.parse(data) as ITradeJioFeeSetting;
     return {

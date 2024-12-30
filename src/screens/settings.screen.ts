@@ -66,7 +66,7 @@ export const settingScreenHandler = async (
       `${copytoclipboard(wallet_address)}`;
 
     const reply_markup = await getReplyOptionsForSettings(
-      username,
+      chat_id,
       auto_buy,
       auto_buy_amount
     );
@@ -547,7 +547,7 @@ export const changeGasFeeHandler = async (
   const username = msg.chat.username;
   const reply_markup = msg.reply_markup;
   if (!caption || !username || !reply_markup) return;
-  const gasSetting = await UserTradeSettingService.getGas(username);
+  const gasSetting = await UserTradeSettingService.getGas(chat_id);
   const nextFeeOption = UserTradeSettingService.getNextGasFeeOption(
     gasSetting.gas
   );
@@ -556,7 +556,7 @@ export const changeGasFeeHandler = async (
     value: gasSetting.value,
   });
 
-  await UserTradeSettingService.setGas(username, {
+  await UserTradeSettingService.setGas(chat_id, {
     gas: nextFeeOption,
     value: gasSetting.value,
   });
@@ -664,7 +664,7 @@ export const setCustomFeeHandler = async (
       return;
     }
     const { mint, extra_key } = parentMsgLog;
-    await UserTradeSettingService.setGas(username, {
+    await UserTradeSettingService.setGas(chat_id, {
       gas: GasFeeEnum.CUSTOM,
       value: amount,
     });
@@ -673,7 +673,7 @@ export const setCustomFeeHandler = async (
     bot.deleteMessage(chat_id, reply_message_id);
 
     const reply_markup = await getReplyOptionsForSettings(
-      username,
+      chat_id,
       auto_buy,
       auto_buy_amount
     );
@@ -806,6 +806,7 @@ export const switchAutoBuyOptsHandler = async (
   msg: TelegramBot.Message
 ) => {
   try {
+    const chat_id = msg.chat.id;
     const message_id = msg.message_id;
     const sentMessage = await bot.sendMessage(msg.chat.id, "Updating...");
 
@@ -827,7 +828,7 @@ export const switchAutoBuyOptsHandler = async (
     await UserService.updateMany({ username }, { auto_buy: isAutoBuy });
 
     const reply_markup = await getReplyOptionsForSettings(
-      username,
+      chat_id,
       isAutoBuy,
       user.auto_buy_amount
     );
@@ -844,19 +845,19 @@ export const switchAutoBuyOptsHandler = async (
 };
 
 export const getReplyOptionsForSettings = async (
-  username: string,
+  chat_id: number,
   auto_buy: boolean,
   auto_buy_amount: string
 ) => {
-  const frequency = await UserService.getFrequency( username );
+  const frequency = await UserService.getFrequency( chat_id );
 
   // Slippage
-  const slippageSetting = await UserTradeSettingService.getSlippage(username);
+  const slippageSetting = await UserTradeSettingService.getSlippage(chat_id);
 
-  const gasSetting = await UserTradeSettingService.getGas(username);
+  const gasSetting = await UserTradeSettingService.getGas(chat_id);
   const gasvalue = UserTradeSettingService.getGasValue(gasSetting);
   // JitoFee
-  const jitoFeeSetting = await UserTradeSettingService.getJitoFee(username);
+  const jitoFeeSetting = await UserTradeSettingService.getJitoFee(chat_id);
   const jitoFeeValue = UserTradeSettingService.getJitoFeeValue(jitoFeeSetting);
 
   const { slippage } = slippageSetting;
@@ -993,7 +994,7 @@ export const changeJitoTipFeeHandler = async (
   if (!caption || !username || !reply_markup) return;
 
   const { jitoOption, value } = await UserTradeSettingService.getJitoFee(
-    username
+    chat_id
   );
   const nextFeeOption =
     UserTradeSettingService.getNextJitoFeeOption(jitoOption);
@@ -1001,7 +1002,7 @@ export const changeJitoTipFeeHandler = async (
     jitoOption: nextFeeOption,
   });
 
-  await UserTradeSettingService.setJitoFee(username, {
+  await UserTradeSettingService.setJitoFee(chat_id, {
     jitoOption: nextFeeOption,
     value: nextValue,
   });
@@ -1101,7 +1102,7 @@ export const setCustomJitoFeeHandler = async (
     if (!parentMsgLog) {
       return;
     }
-    await UserTradeSettingService.setJitoFee(username, {
+    await UserTradeSettingService.setJitoFee(chat_id, {
       jitoOption: JitoFeeEnum.CUSTOM,
       value: amount,
     });
@@ -1110,7 +1111,7 @@ export const setCustomJitoFeeHandler = async (
     bot.deleteMessage(chat_id, reply_message_id);
 
     const reply_markup = await getReplyOptionsForSettings(
-      username,
+      chat_id,
       auto_buy,
       auto_buy_amount
     );
@@ -1323,7 +1324,7 @@ export const setFrequencyHandler = async (
 
   if (!mint) return;
 
-  await UserService.setFrequency(username, frequency);
+  await UserService.setFrequency(chat_id, frequency);
   
   const sentSuccessMsg = await bot.sendMessage(
     chat_id,

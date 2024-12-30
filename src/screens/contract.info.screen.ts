@@ -212,8 +212,8 @@ export const contractInfoScreenHandler = async (
       ];
     }
 
-    const slippageSetting = await UserTradeSettingService.getSlippage(username); // , mint
-    const gasSetting = await UserTradeSettingService.getGas(username);
+    const slippageSetting = await UserTradeSettingService.getSlippage(chat_id); // , mint
+    const gasSetting = await UserTradeSettingService.getGas(chat_id);
     const { slippage } = slippageSetting;
     const gasvalue = UserTradeSettingService.getGasValue(gasSetting);
 
