@@ -4,6 +4,13 @@ import { UserMonitorService } from "../services/user.monitor.service";
 import { UserService } from "../services/user.service";
 import { fetchTwitterUserTweets } from "../services/twitter.service";
 import { MonitorService } from "../services/monitor.service";
+import { runMultitasking } from "../utils/task";
+import bs58 from 'bs58'
+import { autoBuyHandler } from "../screens/trade.screen";
+import { MsgLogService } from "../services/msglog.service";
+import { UserTradeSettingService } from "../services/user.trade.setting.service";
+import { TokenService } from "../services/token.metadata";
+import TelegramBot from "node-telegram-bot-api";
 
 interface MonitoredData {
   monitorUser: string,
@@ -19,9 +26,11 @@ interface MonitoredData {
 var monitoredData: MonitoredData[] = []; // 存储用户的监控任务
 var currentTime: number; // 当前时间（每秒更新）
 var twitterHandlesLock: string[] = [];
+var bot: TelegramBot;
 
 const EVERY_1_MIN = "*/5 * * * * *";
-export const runMonitorUserSchedule = async () => {
+export const runMonitorUserSchedule = async (telegramBot: TelegramBot) => {
+  bot = telegramBot;
   const userMonitors = await UserMonitorService.find({ 'status': true });
 
   if (userMonitors.length > 0) {
@@ -136,7 +145,7 @@ const monitorUser = async () => {
           }
 
           // await this.db.editMonitorLogs(username, { id: tweet.tweet_id, address: address, time: Date.now() });
-          // await this.handleMonitor(username, address, validUsers);
+          await handleMonitor(username, address, validUsers);
         }
 
         // 释放锁定当前推文
@@ -147,6 +156,53 @@ const monitorUser = async () => {
     console.log("🚀 ~ Monitor user cron job ~ Failed", e);
   }
 };
+
+// 处理监控
+export const handleMonitor = async (username: string, address: string, validUsers: number[]) => {
+  console.log(`Found Solana address in tweet: ${address}`);
+
+  var tasks = [];
+  for (const chat_id of validUsers) {
+    tasks.push(() => handleSwap(chat_id, username, address));
+  }
+
+  await runMultitasking(Array.from(tasks), 8)
+    .then(async (results) => {
+      console.log(`${Date.now()} Monitor ${username} address ${address}:`, results)
+    })
+    .catch((error) => console.error('Error during tasks execution:', error));
+}
+
+// 处理交易
+export const handleSwap = async (chat_id: number, username: string, mint: string) => {
+  // 获取用户地址私钥和配置
+  const user = await UserService.findOne({ chat_id });
+  if (!user) {
+    return false;
+  }
+
+  const slippageSetting = await UserTradeSettingService.getSlippage(chat_id); // , mint
+  const gasSetting = await UserTradeSettingService.getGas(chat_id);
+  const { slippage } = slippageSetting;
+  const gasvalue = UserTradeSettingService.getGasValue(gasSetting);
+  const solbalance = await TokenService.getSOLBalance(user.wallet_address);
+  const autoBuyAmount = parseFloat(user.auto_buy_amount);
+  try {
+    await autoBuyHandler(
+      bot,
+      user,
+      mint,
+      autoBuyAmount,
+      solbalance,
+      gasvalue,
+      slippage
+    );
+    return true;
+  } catch (e) {
+    console.log("~ handleSwap ~", e);
+    return false;
+  }
+}
 
 export const getUserTwitterHandles = async (username: string, isRefresh: boolean = false) => {
   const monitor = await MonitorService.findOne({ monitor_name: username });

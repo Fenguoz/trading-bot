@@ -17,10 +17,10 @@ export const welcomeKeyboardList = [
   // [{ text: "Burn: Off ♨️", command: `burn_switch` }],
   [
     // { text: "⛓ Bridge", command: "bridge" },
-    { text: "🛠 Settings & Tools", command: "settings" },
+    { text: "🛠 设置 & 工具", command: "settings" },
   ],
-  [{ text: "🎁 Referral Program", command: "referral" }],
-  [{ text: "❌ Close", command: "dismiss_message" }],
+  [{ text: "🎁 推荐计划", command: "referral" }],
+  [{ text: "❌ 关闭", command: "dismiss_message" }],
 ];
 
 export const WelcomeScreenHandler = async (
@@ -93,10 +93,10 @@ const newUserHandler = async (bot: TelegramBot, msg: TelegramBot.Message) => {
 
   // send private key & wallet address
   const caption =
-    `👋 Welcome!\n\n` +
-    `A new wallet has been generated for you. This is your wallet address\n\n` +
+    `👋 欢迎!\n\n` +
+    `已为您生成新钱包。这是您的钱包地址\n\n` +
     `${wallet_address}\n\n` +
-    `<b>Save this private key below</b>❗\n\n` +
+    `<b>保存以下私钥</b>❗\n\n` +
     `<tg-spoiler>${private_key}</tg-spoiler>\n\n`;
 
   await bot.sendMessage(chat_id, caption, {
@@ -106,7 +106,7 @@ const newUserHandler = async (bot: TelegramBot, msg: TelegramBot.Message) => {
       inline_keyboard: [
         [
           {
-            text: "* Dismiss message",
+            text: "* 忽略消息",
             callback_data: JSON.stringify({
               command: "dismiss_message",
             }),
@@ -129,11 +129,11 @@ export const welcomeGuideHandler = async (
   if (!user) return;
   const solbalance = await TokenService.getSOLBalance(user.wallet_address);
   const caption =
-    `<b>Welcome | Beta Version</b>\n\n` +
-    `<b>💳 My Wallet:</b>\n${copytoclipboard(user.wallet_address)}\n\n` +
-    `<b>💳 Balance:</b> ${solbalance} SOL\n\n` +
-    `<a href="https://solscan.io/address/${user.wallet_address}">View on Explorer</a>\n\n` +
-    `<b>Paste a contract address to trigger the Buy/Sell Menu or pick an option to get started.</b>`;
+    `<b>欢迎 | Beta 版本</b>\n\n` +
+    `<b>💳 我的钱包:</b>\n${copytoclipboard(user.wallet_address)}\n\n` +
+    `<b>💳 余额:</b> ${solbalance} SOL\n\n` +
+    `<a href="https://solscan.io/address/${user.wallet_address}">查看浏览器</a>\n\n` +
+    `<b>粘贴合约地址以触发买入/卖出菜单或选择一个选项开始。</b>`;
 
   const burn_fee = user.burn_fee;
   const reply_markup = {

@@ -58,11 +58,9 @@ export const settingScreenHandler = async (
 
     const caption =
       `<b>LeekTrade</b>\n\n` +
-      `<b>AutoBuy</b>\n` +
-      `Automatically execute buys upon pasting token address. Customize the Sol amount and press the button to activate/deactivate.\n\n` +
-      `<b>Withdraw</b>\n` +
-      `Withdraw any token or Solana you have in the currently active wallet.\n\n` +
-      `<b>Your active wallet:</b>\n` +
+      `<b>自动购买</b>\n` +
+      `粘贴代币地址后自动执行购买。自定义 Sol 数量并按下按钮以激活/停用。.\n\n` +
+      `<b>你的活跃钱包:</b>\n` +
       `${copytoclipboard(wallet_address)}`;
 
     const reply_markup = await getReplyOptionsForSettings(
@@ -125,8 +123,8 @@ export const presetBuyBtnHandler = async (
 
   // caption for preset buy buttons
   const caption =
-    `⚙ Manual Buy Amount Presets\n\n` +
-    `💡 <i>Click on the button that you would like to change the value of</i>`;
+    `⚙ 手动购买金额预设\n\n` +
+    `💡 <i>单击要更改值的按钮</i>`;
   const sentMessage = await bot.sendMessage(chat_id, caption, {
     parse_mode: "HTML",
     disable_web_page_preview: true,
@@ -134,13 +132,13 @@ export const presetBuyBtnHandler = async (
       inline_keyboard: [
         [
           {
-            text: `Buy ${preset_setting[0]} SOL`,
+            text: `购买 ${preset_setting[0]} SOL`,
             callback_data: JSON.stringify({
               command: `preset_buy_0`,
             }),
           },
           {
-            text: `Buy ${preset_setting[1]} SOL`,
+            text: `购买 ${preset_setting[1]} SOL`,
             callback_data: JSON.stringify({
               command: `preset_buy_1`,
             }),
@@ -148,13 +146,13 @@ export const presetBuyBtnHandler = async (
         ],
         [
           {
-            text: `Buy ${preset_setting[2]} SOL`,
+            text: `购买 ${preset_setting[2]} SOL`,
             callback_data: JSON.stringify({
               command: `preset_buy_2`,
             }),
           },
           {
-            text: `Buy ${preset_setting[3]} SOL`,
+            text: `购买 ${preset_setting[3]} SOL`,
             callback_data: JSON.stringify({
               command: `preset_buy_3`,
             }),
@@ -162,7 +160,7 @@ export const presetBuyBtnHandler = async (
         ],
         [
           {
-            text: `❌ Dismiss message`,
+            text: `❌ 忽略消息`,
             callback_data: JSON.stringify({
               command: "dismiss_message",
             }),
@@ -241,7 +239,7 @@ export const walletViewHandler = async (
     const { wallet_address } = activeuser;
 
     const caption =
-      `<b>LeekTrade</b>\n\n<b>Your active wallet:</b>\n` +
+      `<b>LeekTrade</b>\n\n<b>您的活跃钱包:</b>\n` +
       `${copytoclipboard(wallet_address)}`;
     // const sentMessage = await bot.sendMessage(
     // chat_id,
@@ -270,7 +268,7 @@ export const walletViewHandler = async (
                 }),
               },
               {
-                text: `🗝 Private key`,
+                text: `🗝 私钥`,
                 callback_data: JSON.stringify({
                   command: `revealpk_${nonce}`,
                 }),
@@ -279,7 +277,7 @@ export const walletViewHandler = async (
           }),
           [
             {
-              text: "💳 Generate new wallet",
+              text: "💳 生成新钱包",
               callback_data: JSON.stringify({
                 command: "generate_wallet",
               }),
@@ -287,13 +285,13 @@ export const walletViewHandler = async (
           ],
           [
             {
-              text: `↩️ Back`,
+              text: `↩️ 返回`,
               callback_data: JSON.stringify({
                 command: "settings",
               }),
             },
             {
-              text: `❌ Close`,
+              text: `❌ 关闭`,
               callback_data: JSON.stringify({
                 command: "dismiss_message",
               }),
@@ -392,16 +390,16 @@ export const generateNewWalletHandler = async (
     if (!userdata) {
       await bot.sendMessage(
         chat_id,
-        "Sorry, we cannot create your account. Please contact support team"
+        "抱歉，我们无法创建您的帐户。请联系支持团队"
       );
       return;
     }
     // send private key & wallet address
     const caption =
-      `👍 Congrates! 👋\n\n` +
-      `A new wallet has been generated for you. This is your wallet address\n\n` +
+      `👍 恭喜你! 👋\n\n` +
+      `已为您生成新钱包。这是您的钱包地址\n\n` +
       `${wallet_address}\n\n` +
-      `<b>Save this private key below</b>❗\n\n` +
+      `<b>保存以下私钥</b>❗\n\n` +
       `<tg-spoiler>${private_key}</tg-spoiler>\n\n`;
 
     await bot.sendMessage(chat_id, caption, {
@@ -411,7 +409,7 @@ export const generateNewWalletHandler = async (
         inline_keyboard: [
           [
             {
-              text: "❌ Dismiss message",
+              text: "❌ 忽略消息",
               callback_data: JSON.stringify({
                 command: "dismiss_message",
               }),
@@ -444,7 +442,7 @@ export const revealWalletPrivatekyHandler = async (
     if (!user) return;
     // send private key & wallet address
     const caption =
-      `🗝 <b>Your private key</b>\n` +
+      `🗝 <b>你的私钥</b>\n` +
       `<tg-spoiler>${user.private_key}</tg-spoiler>\n\n`;
 
     await bot.sendMessage(chat_id, caption, {
@@ -520,7 +518,7 @@ export const setCustomBuyPresetHandler = async (
     );
     const sentSuccessMsg = await bot.sendMessage(
       chat_id,
-      "Preset value changed successfully!"
+      "预设值修改成功!"
     );
 
     setTimeout(() => {
@@ -866,13 +864,13 @@ export const getReplyOptionsForSettings = async (
     inline_keyboard: [
       [
         {
-          text: `💳 Wallet`,
+          text: `💳 钱包`,
           callback_data: JSON.stringify({
             command: `wallet_view`,
           }),
         },
         {
-          text: `🗒  Preset Settings`,
+          text: `🗒  预设设置`,
           callback_data: JSON.stringify({
             command: `preset_setting`,
           }),
@@ -892,7 +890,7 @@ export const getReplyOptionsForSettings = async (
           }),
         },
         {
-          text: `〰️ Slippage: ${slippage} %`,
+          text: `〰️ 滑点: ${slippage} %`,
           callback_data: JSON.stringify({
             command: `set_slippage`,
           }),
@@ -900,7 +898,7 @@ export const getReplyOptionsForSettings = async (
       ],
       [
         {
-          text: `${!auto_buy ? "Autobuy ☑️" : "Autobuy ✅"}`,
+          text: `${!auto_buy ? "自动购买 ☑️" : "自动购买 ✅"}`,
           callback_data: JSON.stringify({
             command: `autobuy_switch`,
           }),
@@ -914,7 +912,7 @@ export const getReplyOptionsForSettings = async (
       ],
       [
         {
-          text: "--- MEV PROTECT ---",
+          text: "--- MEV 保护 ---",
           callback_data: JSON.stringify({
             command: `dump`,
           }),
@@ -936,7 +934,7 @@ export const getReplyOptionsForSettings = async (
       ],
       [
         {
-          text: "--- PRIORITY FEES ---",
+          text: "--- 优先费用 ---",
           callback_data: JSON.stringify({
             command: `dump`,
           }),
@@ -965,13 +963,13 @@ export const getReplyOptionsForSettings = async (
       ],
       [
         {
-          text: "↩️ Back",
+          text: "↩️ 返回",
           callback_data: JSON.stringify({
             command: "back_home",
           }),
         },
         {
-          text: "❌ Close",
+          text: "❌ 关闭",
           callback_data: JSON.stringify({
             command: "dismiss_message",
           }),

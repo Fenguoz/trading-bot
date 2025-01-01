@@ -85,89 +85,79 @@ export const contractInfoScreenHandler = async (
     let caption = "";
     let solbalance = 0;
     let splbalance = 0;
-    // Here, we need to get info from raydium token list
-    const raydiumPoolInfo = await RaydiumTokenService.findLastOne({ mint });
+
     let isJupiterTradable = false;
     let isPumpfunTradable = false;
-    if (!raydiumPoolInfo) {
-      const jupiterSerivce = new JupiterService();
-      const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
-        mint
-      );
-      if (!jupiterTradeable) {
-        isPumpfunTradable = true;
-      } else {
-        isJupiterTradable = jupiterTradeable;
-      }
-    } else {
+    let isRaydiumTradable = false;
+    const raydiumPoolInfo = await RaydiumTokenService.findLastOne({ mint });
+    if (raydiumPoolInfo) {//Raydium Cache
       const { creation_ts } = raydiumPoolInfo;
       const duration = Date.now() - creation_ts;
       // 120minutes
       if (duration < RAYDIUM_PASS_TIME) {
-        isJupiterTradable = false;
-      } else {
-        const jupiterSerivce = new JupiterService();
-        const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
-          mint
+        const captionForRaydium = await getRaydiumTokenInfoCaption(
+          raydiumPoolInfo,
+          user.wallet_address
         );
-        isJupiterTradable = jupiterTradeable;
+        console.log('captionForRaydium', captionForRaydium)
+        if (captionForRaydium) {
+          bot.deleteMessage(chat_id, pending.message_id);
+          caption = captionForRaydium.caption;
+          solbalance = captionForRaydium.solbalance;
+          splbalance = captionForRaydium.splbalance;
+  
+          isRaydiumTradable = true;
+        }
       }
     }
-    console.log("IsJupiterTradeable", isJupiterTradable);
 
-    if (isPumpfunTradable) {
+    if (!isRaydiumTradable) {//Pump
       const captionForPump = await getPumpTokenInfoCaption(
         mint,
         user.wallet_address
       );
+      console.log('captionForPump', captionForPump)
 
-      if (!captionForPump) {
+      if (captionForPump) {
         bot.deleteMessage(chat_id, pending.message_id);
-        await sendNoneExistTokenNotification(bot, msg);
-        return;
+        caption = captionForPump.caption;
+        solbalance = captionForPump.solbalance;
+        splbalance = captionForPump.splbalance;
+        isPumpfunTradable = true;
       }
-      bot.deleteMessage(chat_id, pending.message_id);
-      caption = captionForPump.caption;
-      solbalance = captionForPump.solbalance;
-      splbalance = captionForPump.splbalance;
-    } else if (raydiumPoolInfo && !isJupiterTradable) {
-      // 120minutes
-      // if (duration < RAYDIUM_PASS_TIME) {
-      const captionForRaydium = await getRaydiumTokenInfoCaption(
-        raydiumPoolInfo,
-        user.wallet_address
-      );
-      if (!captionForRaydium) {
-        bot.deleteMessage(chat_id, pending.message_id);
-        return;
-      }
-      bot.deleteMessage(chat_id, pending.message_id);
-      caption = captionForRaydium.caption;
-      solbalance = captionForRaydium.solbalance;
-      splbalance = captionForRaydium.splbalance;
-      // }
-    } else {
+    }
+
+    if (!isPumpfunTradable) {//Jupiter
+      // const jupiterSerivce = new JupiterService();
+      // const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
+      //   mint
+      // );
+
       // check token metadata
       const tokeninfo = await TokenService.getMintInfo(mint);
-      if (!tokeninfo) {
-        bot.deleteMessage(chat_id, pending.message_id);
-        await sendNoneExistTokenNotification(bot, msg);
-        return;
-      }
-      const captionForJuipter = await getJupiterTokenInfoCaption(
-        tokeninfo,
-        mint,
-        user.wallet_address
-      );
+      if (tokeninfo) {
+        const captionForJuipter = await getJupiterTokenInfoCaption(
+          tokeninfo,
+          mint,
+          user.wallet_address
+        );
+        console.log('captionForJuipter', captionForJuipter)
 
-      if (!captionForJuipter) {
-        bot.deleteMessage(chat_id, pending.message_id);
-        return;
+        if (captionForJuipter) {
+          bot.deleteMessage(chat_id, pending.message_id);
+          caption = captionForJuipter.caption;
+          solbalance = captionForJuipter.solbalance;
+          splbalance = captionForJuipter.splbalance;
+
+          isJupiterTradable = true;
+        }
       }
+    }
+
+    if (!isJupiterTradable && !isPumpfunTradable && !isRaydiumTradable) {
       bot.deleteMessage(chat_id, pending.message_id);
-      caption = captionForJuipter.caption;
-      solbalance = captionForJuipter.solbalance;
-      splbalance = captionForJuipter.splbalance;
+      await sendNoneExistTokenNotification(bot, msg);
+      return;
     }
 
     const preset_setting = user.preset_setting ?? [0.01, 1, 5, 10];
@@ -289,7 +279,6 @@ export const contractInfoScreenHandler = async (
         );
         await autoBuyHandler(
           bot,
-          msg,
           user,
           mint,
           autoBuyAmount,
@@ -445,12 +434,12 @@ const getJupiterTokenInfoCaption = async (
     const quote =
       splvalue > PNL_SHOW_THRESHOLD_USD
         ? await jupiterService.getQuote(
-            mint,
-            NATIVE_MINT.toString(),
-            splbalance,
-            decimals,
-            9
-          )
+          mint,
+          NATIVE_MINT.toString(),
+          splbalance,
+          decimals,
+          9
+        )
         : null;
     const priceImpact = quote ? quote.priceImpactPct : 0;
 
@@ -535,15 +524,15 @@ const getPumpTokenInfoCaption = async (
         10 ** decimals *
         (1 - _slippage) *
         coinData["virtual_sol_reserves"]) /
-        coinData["virtual_token_reserves"]
+      coinData["virtual_token_reserves"]
     );
     // const quote = { inAmount: splbalance, outAmount: fromWeiToValue(minSolOutput, 9) } as QuoteRes
     const quote =
       splvalue > PNL_SHOW_THRESHOLD_USD
         ? ({
-            inAmount: splbalance,
-            outAmount: fromWeiToValue(minSolOutput, 9),
-          } as QuoteRes)
+          inAmount: splbalance,
+          outAmount: fromWeiToValue(minSolOutput, 9),
+        } as QuoteRes)
         : null;
     const priceImpact = 0;
     console.log("Pump Quote", quote);
@@ -551,10 +540,11 @@ const getPumpTokenInfoCaption = async (
     const freezeAuthority = metadata.parsed.info.freezeAuthority;
     const mintAuthority = metadata.parsed.info.mintAuthority;
 
-    const secuInf = (await TokenService.getTokenSecurity(
-      mintStr
-    )) as TokenSecurityInfoDataType;
-    const top10HolderPercent = secuInf.top10HolderPercent as number;
+    // const secuInf = (await TokenService.getTokenSecurity(
+    //   mintStr
+    // )) as TokenSecurityInfoDataType;
+    // const top10HolderPercent = secuInf.top10HolderPercent as number;
+    const top10HolderPercent = 0;
     const price = priceInUsd;
 
     const caption = await buildCaption(
@@ -629,11 +619,9 @@ const buildCaption = async (
   caption +=
     `🌳 Mint Disabled: ${mintAuthority ? "🔴" : "🍏"}\n` +
     `🌳 Freeze Disabled: ${freezeAuthority ? "🔴" : "🍏"}\n` +
-    `👥 Top 10 holders: ${
-      top10HolderPercent && (top10HolderPercent > 0.15 ? "🔴" : "🍏")
-    }  [ ${
-      top10HolderPercent && (top10HolderPercent * 100)?.toFixed(2)
-    }% ]\n\n` +
+    // `👥 Top 10 holders: ${top10HolderPercent && (top10HolderPercent > 0.15 ? "🔴" : "🍏")
+    // }  [ ${top10HolderPercent && (top10HolderPercent * 100)?.toFixed(2)
+    // }% ]\n\n` +
     `💲 Price: <b>$${formatPrice(price)}</b>\n` +
     `💸 Price Impact: [${priceImpact.toFixed(4)} %]\n` +
     `📊 Market Cap: <b>$${formatKMB(mc)}</b>\n\n` +

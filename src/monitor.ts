@@ -3,7 +3,7 @@ import { Twitter } from "./twitter";
 import { DB } from "./db";
 import { Swap } from "./swap";
 import bs58 from 'bs58'
-import { runMultitasking } from './task';
+import { runMultitasking } from './utils/task';
 
 export interface TwitterConfig {
     appKey: string,

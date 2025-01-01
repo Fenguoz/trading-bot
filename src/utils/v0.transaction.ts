@@ -68,7 +68,7 @@ export async function sendTransactionV0(
 
 export const getSignatureStatus = async (signature: string) => {
   try {
-    const maxRetry = 30;
+    const maxRetry = 20;
     let retries = 0;
     while (retries < maxRetry) {
       await wait(1_000);

@@ -1,7 +1,9 @@
 import axios from "axios";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 export async function getCoinData(mintStr: string) {
   try {
+    const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
     const url = `https://frontend-api.pump.fun/coins/${mintStr}`;
     const response = await axios.get(url, {
       headers: {
@@ -18,6 +20,7 @@ export async function getCoinData(mintStr: string) {
         "Sec-Fetch-Site": "cross-site",
         "If-None-Match": 'W/"43a-tWaCcS4XujSi30IFlxDCJYxkMKg"',
       },
+      // httpsAgent: agent,
     });
     if (response.status === 200) {
       return response.data;

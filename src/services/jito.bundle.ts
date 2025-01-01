@@ -50,7 +50,7 @@ export class JitoBundleService {
   }
   async sendBundle(serializedTransaction: Uint8Array) {
     const encodedTx = bs58.encode(serializedTransaction);
-    const jitoURL = `${this.endpoint}/api/v1/bundles?uuid=${JITO_UUID}`; // ?uuid=${JITO_UUID}
+    const jitoURL = `${this.endpoint}/api/v1/bundles`; // ?uuid=${JITO_UUID}
     const payload = {
       jsonrpc: "2.0",
       id: 1,
@@ -103,7 +103,7 @@ export class JitoBundleService {
       retries++;
       try {
         this.updateRegion();
-        const jitoURL = `${this.endpoint}/api/v1/bundles?uuid=${JITO_UUID}`; // ?uuid=${JITO_UUID}
+        const jitoURL = `${this.endpoint}/api/v1/bundles`; // ?uuid=${JITO_UUID}
         // console.log("retries", jitoURL);
 
         const response = await axios.post(jitoURL, payload, {

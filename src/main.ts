@@ -27,12 +27,12 @@ export interface ReferralIdenticalType {
 const startTradeBot = () => {
   const bot = new TelegramBot(token, {
     polling: true,
-    request: {
-      proxy: 'http://127.0.0.1:1087',
-      url: "https://api.telegram.org",
-    }
+    // request: {
+    //   proxy: 'http://127.0.0.1:1087',
+    //   url: "https://api.telegram.org",
+    // }
   });
-  runMonitorUserSchedule();
+  runMonitorUserSchedule(bot);
   bot.setMyCommands(BotMenu);
 
   // bot callback

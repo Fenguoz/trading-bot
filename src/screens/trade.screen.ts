@@ -50,6 +50,7 @@ import { setFlagForBundleVerify } from "../services/redis.service";
 import { getReplyOptionsForSettings } from "./settings.screen";
 // import { GenerateReferralCode } from "./referral.link.handler";
 import { JitoBundleService } from "../services/jito.bundle";
+import { getSignatureStatus } from "../utils/v0.transaction";
 
 export const buyCustomAmountScreenHandler = async (
   bot: TelegramBot,
@@ -312,19 +313,19 @@ export const buyHandler = async (
 
   const quoteResult = isPumpfunTradable
     ? await pumpFunSwap(
-        user.private_key,
-        mint,
-        decimals,
-        true,
-        amount,
-        gasvalue,
-        slippage,
-        user.burn_fee ?? true,
-        chat_id,
-        isToken2022
-      )
+      user.private_key,
+      mint,
+      decimals,
+      true,
+      amount,
+      gasvalue,
+      slippage,
+      user.burn_fee ?? true,
+      chat_id,
+      isToken2022
+    )
     : isRaydium
-    ? await raydiumService.swapToken(
+      ? await raydiumService.swapToken(
         user.private_key,
         NATIVE_MINT.toString(),
         mint,
@@ -337,7 +338,7 @@ export const buyHandler = async (
         chat_id,
         isToken2022
       )
-    : await jupiterSerivce.swapToken(
+      : await jupiterSerivce.swapToken(
         user.private_key,
         NATIVE_MINT.toString(),
         mint,
@@ -396,13 +397,12 @@ export const buyHandler = async (
         disable_web_page_preview: true,
         reply_markup: closeReplyMarkup.reply_markup as InlineKeyboardMarkup,
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 };
 
 export const autoBuyHandler = async (
   bot: TelegramBot,
-  msg: TelegramBot.Message,
   user: any,
   mint: string,
   amount: number,
@@ -410,11 +410,11 @@ export const autoBuyHandler = async (
   gasvalue: number,
   slippage: number
 ) => {
-  const chat_id = msg.chat.id;
-  const username = msg.chat.username;
-  if (!username) return;
+  const chat_id = user.chat_id;
+  // const username = msg.chat.username;
+  // if (!username) return;
   // Insufficient check check if enough includes fee
-  if (sol_amount && sol_amount <= amount + gasvalue) {
+  if (sol_amount <= amount + gasvalue) {
     bot
       .sendMessage(
         chat_id,
@@ -434,69 +434,67 @@ export const autoBuyHandler = async (
   let decimals = 9;
   let isToken2022 = false;
   let isRaydium = true;
-  const raydiumPoolInfo = await RaydiumTokenService.findLastOne({ mint });
 
+  let isRaydiumTradable = false;
   let isJupiterTradable = false;
   let isPumpfunTradable = false;
 
-  const jupiterSerivce = new JupiterService();
-  if (!raydiumPoolInfo) {
-    const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(mint);
-    if (!jupiterTradeable) {
-      isPumpfunTradable = true;
-    } else {
-      isJupiterTradable = jupiterTradeable;
-    }
-  } else {
+  const raydiumPoolInfo = await RaydiumTokenService.findLastOne({ mint });
+  if (raydiumPoolInfo) {
     const { creation_ts } = raydiumPoolInfo;
     const duration = Date.now() - creation_ts;
     // 120minutes
     if (duration < RAYDIUM_PASS_TIME) {
-      isJupiterTradable = false;
-    } else {
-      const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
-        mint
+      const metadata = await TokenService.getMintMetadata(
+        private_connection,
+        new PublicKey(mint)
       );
-      isJupiterTradable = jupiterTradeable;
+      if (!metadata) return;
+      isToken2022 = metadata.program === "spl-token-2022";
+      name = raydiumPoolInfo.name;
+      symbol = raydiumPoolInfo.symbol;
+      decimals = metadata.parsed.info.decimals;
+
+      isRaydiumTradable = true;
     }
   }
-  console.log("IsJupiterTradeable", isJupiterTradable);
 
-  if (isPumpfunTradable) {
+  if (!isRaydiumTradable) {//Pumpfun
     const coinData = await getCoinData(mint);
-    if (!coinData) {
-      console.error("Failed to retrieve coin data...");
-      return;
+    if (coinData) {//Pumpfun
+      name = coinData["name"];
+      symbol = coinData["symbol"];
+      const metadata = await TokenService.getMintMetadata(
+        private_connection,
+        new PublicKey(mint)
+      );
+      if (!metadata) return;
+      decimals = metadata.parsed.info.decimals;
+      isToken2022 = metadata.program === "spl-token-2022";
+  
+      isPumpfunTradable = true;
     }
+  }
 
-    name = coinData["name"];
-    symbol = coinData["symbol"];
-    const metadata = await TokenService.getMintMetadata(
-      private_connection,
-      new PublicKey(mint)
-    );
-    if (!metadata) return;
-    decimals = metadata.parsed.info.decimals;
-    isToken2022 = metadata.program === "spl-token-2022";
-  } else if (raydiumPoolInfo && !isJupiterTradable) {
-    const metadata = await TokenService.getMintMetadata(
-      private_connection,
-      new PublicKey(mint)
-    );
-    if (!metadata) return;
-    isToken2022 = metadata.program === "spl-token-2022";
-    name = raydiumPoolInfo.name;
-    symbol = raydiumPoolInfo.symbol;
-    decimals = metadata.parsed.info.decimals;
-    // }
-  } else {
-    const mintinfo = await TokenService.getMintInfo(mint);
-    if (!mintinfo) return;
-    isRaydium = false;
-    name = mintinfo.overview.name || "";
-    symbol = mintinfo.overview.symbol || "";
-    decimals = mintinfo.overview.decimals || 9;
-    isToken2022 = mintinfo.secureinfo.isToken2022;
+  const jupiterSerivce = new JupiterService();
+  if (!isPumpfunTradable) {//Jupiter
+    const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(mint);
+
+    if (jupiterTradeable) {
+      const mintinfo = await TokenService.getMintInfo(mint);
+      if (!mintinfo) return;
+      name = mintinfo.overview.name || "";
+      symbol = mintinfo.overview.symbol || "";
+      decimals = mintinfo.overview.decimals || 9;
+      isToken2022 = mintinfo.secureinfo.isToken2022;
+
+      isJupiterTradable = true;
+    }
+  }
+
+  if (!isRaydiumTradable && !isPumpfunTradable && !isJupiterTradable) {
+    console.error("Failed to retrieve coin data...");
+    return;
   }
 
   const solprice = await TokenService.getSOLPrice();
@@ -505,8 +503,7 @@ export const autoBuyHandler = async (
   // send Notification
   const getcaption = (status: string, suffix: string = "") => {
     const securecaption =
-      `<b>AutoBuy</b>\n\n🌳 Token: <b>${name ?? "undefined"} (${
-        symbol ?? "undefined"
+      `<b>自动购买</b>\n\n🌳 Token: <b>${name ?? "undefined"} (${symbol ?? "undefined"
       })</b> ` +
       `${isToken2022 ? "<i>Token2022</i>" : ""}\n` +
       `<i>${copytoclipboard(mint)}</i>\n` +
@@ -516,7 +513,7 @@ export const autoBuyHandler = async (
 
     return securecaption;
   };
-  const buycaption = getcaption(`🕒 <b>Buy in progress</b>\n`);
+  const buycaption = getcaption(`🕒 <b>正在购买</b>\n`);
 
   const pendingTxMsg = await bot.sendMessage(chat_id, buycaption, {
     parse_mode: "HTML",
@@ -529,19 +526,19 @@ export const autoBuyHandler = async (
   // const jupiterSerivce = new JupiterService();
   const quoteResult = isPumpfunTradable
     ? await pumpFunSwap(
-        user.private_key,
-        mint,
-        decimals,
-        true,
-        amount,
-        gasvalue,
-        slippage,
-        user.burn_fee ?? true,
-        chat_id,
-        isToken2022
-      )
+      user.private_key,
+      mint,
+      decimals,
+      true,
+      amount,
+      gasvalue,
+      slippage,
+      user.burn_fee ?? true,
+      chat_id,
+      isToken2022
+    )
     : isRaydium
-    ? await raydiumService.swapToken(
+      ? await raydiumService.swapToken(
         user.private_key,
         NATIVE_MINT.toString(),
         mint,
@@ -553,7 +550,7 @@ export const autoBuyHandler = async (
         chat_id,
         isToken2022
       )
-    : await jupiterSerivce.swapToken(
+      : await jupiterSerivce.swapToken(
         user.private_key,
         NATIVE_MINT.toString(),
         mint,
@@ -575,17 +572,17 @@ export const autoBuyHandler = async (
     // might be overlapped
     await setFlagForBundleVerify(user.wallet_address);
 
-    // const status = await getSignatureStatus(signature);
-    const jitoBundleInstance = new JitoBundleService();
-    const status = await jitoBundleInstance.getBundleStatus(bundleId);
+    const status = await getSignatureStatus(signature);
+    // const jitoBundleInstance = new JitoBundleService();
+    // const status = await jitoBundleInstance.getBundleStatus(bundleId);
     let resultCaption;
     if (status) {
-      resultCaption = getcaption(`🟢 <b>Buy Success</b>\n`, suffix);
+      resultCaption = getcaption(`🟢 <b>购买成功</b>\n`, suffix);
 
-      // Buy with SOL.
-      const { inAmount, outAmount } = quote;
-      const inAmountNum = fromWeiToValue(inAmount, 9);
-      const outAmountNum = fromWeiToValue(outAmount, decimals);
+      // // Buy with SOL.
+      // const { inAmount, outAmount } = quote;
+      // const inAmountNum = fromWeiToValue(inAmount, 9);
+      // const outAmountNum = fromWeiToValue(outAmount, decimals);
 
       // const pnlservice = new PNLService(user.wallet_address, mint);
       // await pnlservice.afterBuy(inAmountNum, outAmountNum);
@@ -593,7 +590,7 @@ export const autoBuyHandler = async (
       // // Update Referral System
       // await checkReferralFeeSent(total_fee_in_sol, username);
     } else {
-      resultCaption = getcaption(`🔴 <b>Buy Failed</b>\n`, suffix);
+      resultCaption = getcaption(`🔴 <b>购买失败</b>\n`, suffix);
     }
 
     await bot.editMessageText(resultCaption, {
@@ -604,7 +601,7 @@ export const autoBuyHandler = async (
       reply_markup: closeReplyMarkup.reply_markup as InlineKeyboardMarkup,
     });
   } else {
-    const failedCaption = getcaption(`🔴 <b>Buy Failed</b>\n`);
+    const failedCaption = getcaption(`🔴 <b>购买失败</b>\n`);
     await bot.editMessageText(failedCaption, {
       message_id: pendingTxMsgId,
       chat_id,
@@ -767,19 +764,19 @@ export const sellHandler = async (
   // const jupiterSerivce = new JupiterService();
   const quoteResult = isPumpfunTradable
     ? await pumpFunSwap(
-        user.private_key,
-        mint,
-        decimals,
-        false,
-        sellAmount,
-        gasvalue,
-        slippage,
-        user.burn_fee ?? true,
-        chat_id,
-        isToken2022
-      )
+      user.private_key,
+      mint,
+      decimals,
+      false,
+      sellAmount,
+      gasvalue,
+      slippage,
+      user.burn_fee ?? true,
+      chat_id,
+      isToken2022
+    )
     : isRaydium
-    ? await raydiumService.swapToken(
+      ? await raydiumService.swapToken(
         user.private_key,
         mint,
         NATIVE_MINT.toString(),
@@ -791,7 +788,7 @@ export const sellHandler = async (
         chat_id,
         isToken2022
       )
-    : await jupiterSerivce.swapToken(
+      : await jupiterSerivce.swapToken(
         user.private_key,
         mint,
         NATIVE_MINT.toString(),
@@ -883,7 +880,7 @@ export const sellHandler = async (
         disable_web_page_preview: true,
         reply_markup: closeReplyMarkup.reply_markup as InlineKeyboardMarkup,
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 };
 
@@ -958,7 +955,7 @@ export const feeHandler = async (
     //   );
     //   referralWallet = new PublicKey(ref_info?.referral_address);
     // } else {
-      referralWallet = RESERVE_WALLET;
+    referralWallet = RESERVE_WALLET;
     // }
 
     // console.log("🚀 ~ referralWallet:", referralWallet.toString());

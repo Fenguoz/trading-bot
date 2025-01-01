@@ -1,5 +1,5 @@
 // 限制并发数的任务执行器
-export async function runMultitasking(tasks: (() => Promise<string>)[], limit: number): Promise<string[]> {
+export async function runMultitasking(tasks: (() => Promise<any>)[], limit: number): Promise<string[]> {
     const results: string[] = [];
     const executing: Promise<void>[] = [];
 
