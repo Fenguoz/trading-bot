@@ -30,6 +30,8 @@ import { TokenService } from "../services/token.metadata";
 import { RaydiumTokenService } from "../services/raydium.token.service";
 import redisClient from "../services/redis";
 import { syncAmmPoolKeys, syncClmmPoolKeys } from "./raydium.service";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import axios from "axios";
 
 const solanaConnection = new Connection(PRIVATE_RPC_ENDPOINT, {
   wsEndpoint: RPC_WEBSOCKET_ENDPOINT,
@@ -51,8 +53,10 @@ async function initDB(): Promise<void> {
 
 async function initAMM(): Promise<void> {
   console.log(" - AMM Pool data fetching is started...");
-  const ammRes = await fetch(RAYDIUM_AMM_URL);
-  const ammData = await ammRes.json();
+  const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
+  const { data:ammData } = await axios.get(RAYDIUM_AMM_URL, {
+      // httpsAgent: agent,
+    })
   console.log(" - AMM Pool data is fetched successfully...");
 
   const batchSize = 100; // Adjust this value based on your requirements
@@ -94,8 +98,10 @@ async function initAMM(): Promise<void> {
 
 async function initCLMM(): Promise<void> {
   console.log(" - CLMM Pool data fetching is started...");
-  const clmmRes = await fetch(RAYDIUM_CLMM_URL);
-  const clmmData = await clmmRes.json();
+  const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
+  const { data:clmmData } = await axios.get(RAYDIUM_CLMM_URL, {
+    // httpsAgent: agent,
+  })
   console.log(" - CLMM Pool data is fetched successfully...");
 
   const batchSize = 100; // Adjust this value based on your requirements

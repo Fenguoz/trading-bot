@@ -5,9 +5,12 @@ import {
 } from "@raydium-io/raydium-sdk";
 import { PublicKey } from "@solana/web3.js";
 
-import { private_connection } from "../../config";
+import { connection, private_connection } from "../../config";
 import { formatConfigInfo } from "./formatClmmConfigs";
 import { getApiClmmPoolsItemStatisticsDefault } from "./formatClmmKeys";
+import { CpmmPoolInfoLayout } from "@raydium-io/raydium-sdk-v2";
+import { AccountLayout } from "@solana/spl-token";
+import BN from "bn.js";
 
 async function getMintProgram(mint: PublicKey) {
   const account = await private_connection.getAccountInfo(mint);
@@ -26,6 +29,23 @@ export async function formatClmmKeysById(
   const account = await private_connection.getAccountInfo(new PublicKey(id));
   if (account === null) throw Error(" get id info error ");
   const info = PoolInfoLayout.decode(account.data);
+  
+  // const poolInfo = CpmmPoolInfoLayout.decode(account.data);
+  // console.log('poolInfo', poolInfo)
+  // const [poolVaultAState, poolVaultBState] = await connection.getMultipleAccountsInfo([poolInfo.vaultA, poolInfo.vaultB])
+
+  //   if (!poolVaultAState) throw new Error(`pool vaultA info not found: ${poolInfo.vaultA.toBase58()}`)
+  //   if (!poolVaultBState) throw new Error(`pool vaultB info not found: ${poolInfo.vaultB.toBase58()}`)
+
+  //   return {
+  //     ...poolInfo,
+  //     baseReserve: new BN(AccountLayout.decode(poolVaultAState.data).amount.toString())
+  //       .sub(poolInfo.protocolFeesMintA)
+  //       .sub(poolInfo.fundFeesMintA),
+  //     quoteReserve: new BN(AccountLayout.decode(poolVaultBState.data).amount.toString())
+  //       .sub(poolInfo.protocolFeesMintB)
+  //       .sub(poolInfo.fundFeesMintB)
+  //   }
 
   return {
     id,

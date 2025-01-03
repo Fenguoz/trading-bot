@@ -36,6 +36,8 @@ import { PublicKey } from "@solana/web3.js";
 import { getTop10HoldersPercent } from "../raydium";
 import {
   calcAmountOut,
+  getPoolInfoByMint,
+  getPriceInSOL,
   syncAmmPoolKeys,
   syncClmmPoolKeys,
 } from "../raydium/raydium.service";
@@ -105,7 +107,7 @@ export const contractInfoScreenHandler = async (
           caption = captionForRaydium.caption;
           solbalance = captionForRaydium.solbalance;
           splbalance = captionForRaydium.splbalance;
-  
+
           isRaydiumTradable = true;
         }
       }
@@ -127,31 +129,50 @@ export const contractInfoScreenHandler = async (
       }
     }
 
-    if (!isPumpfunTradable) {//Jupiter
-      // const jupiterSerivce = new JupiterService();
-      // const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
-      //   mint
-      // );
-
-      // check token metadata
-      const tokeninfo = await TokenService.getMintInfo(mint);
-      if (tokeninfo) {
-        const captionForJuipter = await getJupiterTokenInfoCaption(
-          tokeninfo,
-          mint,
+    if (!isPumpfunTradable && !raydiumPoolInfo) {
+      //获取当前最新Raydium
+      const raydiumPoolInfo = await getPoolInfoByMint(mint);
+      if (raydiumPoolInfo) {
+        const captionForRaydium = await getRaydiumTokenInfoCaption(
+          raydiumPoolInfo,
           user.wallet_address
         );
-        console.log('captionForJuipter', captionForJuipter)
-
-        if (captionForJuipter) {
+        console.log('captionForRaydium', captionForRaydium)
+        if (captionForRaydium) {
           bot.deleteMessage(chat_id, pending.message_id);
-          caption = captionForJuipter.caption;
-          solbalance = captionForJuipter.solbalance;
-          splbalance = captionForJuipter.splbalance;
+          caption = captionForRaydium.caption;
+          solbalance = captionForRaydium.solbalance;
+          splbalance = captionForRaydium.splbalance;
 
-          isJupiterTradable = true;
+          isRaydiumTradable = true;
         }
       }
+
+      //Jupiter
+      // // const jupiterSerivce = new JupiterService();
+      // // const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
+      // //   mint
+      // // );
+
+      // // check token metadata
+      // const tokeninfo = await TokenService.getMintInfo(mint);
+      // if (tokeninfo) {
+      //   const captionForJuipter = await getJupiterTokenInfoCaption(
+      //     tokeninfo,
+      //     mint,
+      //     user.wallet_address
+      //   );
+      //   console.log('captionForJuipter', captionForJuipter)
+
+      //   if (captionForJuipter) {
+      //     bot.deleteMessage(chat_id, pending.message_id);
+      //     caption = captionForJuipter.caption;
+      //     solbalance = captionForJuipter.solbalance;
+      //     splbalance = captionForJuipter.splbalance;
+
+      //     isJupiterTradable = true;
+      //   }
+      // }
     }
 
     if (!isJupiterTradable && !isPumpfunTradable && !isRaydiumTradable) {
@@ -338,24 +359,27 @@ const getRaydiumTokenInfoCaption = async (
 
     // const splvalue = priceInUsd * splbalance;
 
-    const quoteTemp = (await calcAmountOut(
-      connection,
-      new PublicKey(mint),
-      decimals,
-      NATIVE_MINT,
-      9,
-      poolId,
-      splbalance,
-      isAmm,
-      ammKeys,
-      clmmKeys
-    )) as QuoteRes;
+    // const quoteTemp = (await calcAmountOut(
+    //   connection,
+    //   new PublicKey(mint),
+    //   decimals,
+    //   NATIVE_MINT,
+    //   9,
+    //   poolId,
+    //   splbalance,
+    //   isAmm,
+    //   ammKeys,
+    //   clmmKeys
+    // )) as QuoteRes;
 
-    const quote = splbalance > 0 ? quoteTemp : null;
+    const quote = null;
+    // const quote = splbalance > 0 ? quoteTemp : null;
 
-    const priceInSOL = quoteTemp.priceInSol; //  await getPriceInSOL(mint);
+    const priceInSOL = await getPriceInSOL(mint);
+    // const priceInSOL = quoteTemp.priceInSol; //  await getPriceInSOL(mint);
     const priceInUsd = (priceInSOL ?? 0) * solprice;
-    const priceImpact = quote ? quote.priceImpactPct : 0;
+    const priceImpact = 0;
+    // const priceImpact = quote ? quote.priceImpactPct : 0;
 
     const supply = Number(metadata.parsed.info.supply) / 10 ** Number(decimals);
     // const liquidity = baseBalance;
@@ -364,12 +388,14 @@ const getRaydiumTokenInfoCaption = async (
     const freezeAuthority = metadata.parsed.info.freezeAuthority;
     const mintAuthority = metadata.parsed.info.mintAuthority;
 
-    const top10HolderPercent = await getTop10HoldersPercent(
-      private_connection,
-      mint,
-      supply
-      // poolState.baseVault
-    );
+    // const top10HolderPercent = await getTop10HoldersPercent(
+    //   private_connection,
+    //   mint,
+    //   supply
+    //   // poolState.baseVault
+    // );
+    const top10HolderPercent = 0;
+
     const price = priceInUsd;
     const mc = circulateSupply * price;
     console.log("Raydium Quote: ", quote);
