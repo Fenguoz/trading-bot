@@ -279,7 +279,7 @@ export class RaydiumSwapService {
         return
       }
 
-      // const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
+      const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
 
       const gasSetting = await UserTradeSettingService.getGas(chat_id);
       const _gasvalue = UserTradeSettingService.getGasValue(gasSetting);
