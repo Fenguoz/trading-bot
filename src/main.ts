@@ -8,6 +8,7 @@ import { UserService } from "./services/user.service";
 import { settingScreenHandler } from "./screens/settings.screen";
 import { MonitorScreenHandler } from "./screens/monitor.screen";
 import { runMonitorUserSchedule } from "./cron/monitor.user.cron";
+import { runSOLPriceUpdateSchedule } from "./cron/sol.price.cron";
 
 const token = TELEGRAM_BOT_API_TOKEN;
 
@@ -33,6 +34,7 @@ const startTradeBot = () => {
     // }
   });
   runMonitorUserSchedule(bot);
+  // runSOLPriceUpdateSchedule();
   bot.setMyCommands(BotMenu);
 
   // bot callback
