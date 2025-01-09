@@ -38,7 +38,7 @@ import {
   NATIVE_MINT,
   TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
-import { connection, private_connection } from "../config";
+import { agent, connection, private_connection } from "../config";
 import { RaydiumTokenService } from "../services/raydium.token.service";
 import { getSignature } from "../utils/get.signature";
 import { JitoBundleService, tipAccounts } from "../services/jito.bundle";
@@ -53,7 +53,6 @@ import { UserTradeSettingService } from "../services/user.trade.setting.service"
 import { getKeyPairFromPrivateKey } from "../pump/utils";
 import { API_URLS, parseTokenAccountResp } from "@raydium-io/raydium-sdk-v2";
 import axios from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
 
 export const getPriceInSOL = async (tokenAddress: string): Promise<number> => {
   try {
@@ -279,8 +278,6 @@ export class RaydiumSwapService {
         return
       }
 
-      const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
-
       const gasSetting = await UserTradeSettingService.getGas(chat_id);
       const _gasvalue = UserTradeSettingService.getGasValue(gasSetting);
       const gasvalue = _gasvalue * LAMPORTS_PER_SOL // in lamports
@@ -290,7 +287,7 @@ export class RaydiumSwapService {
         `${API_URLS.SWAP_HOST
         }/compute/swap-base-in?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippage}&txVersion=${txVersion}`
         , {
-          // httpsAgent: agent,
+          httpsAgent: agent,
         })
 
       console.log('swapResponse', swapResponse)
@@ -315,7 +312,7 @@ export class RaydiumSwapService {
         inputAccount: isInputSol ? undefined : inputTokenAcc?.toBase58(),
         outputAccount: isOutputSol ? undefined : outputTokenAcc?.toBase58(),
       }, {
-        // httpsAgent: agent,
+        httpsAgent: agent,
       })
 
       if (swapTransactions.success === false) {
@@ -461,9 +458,8 @@ export const syncClmmPoolKeys = async (poolId: string) => {
 export const getPoolInfoByMint = async (mint: string) => {
   console.log("getPoolId");
 
-  // const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
   const { data: poolInfoData } = await axios.get(`https://api-v3.raydium.io/pools/info/mint?mint1=${mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=10&page=1`, {
-    // httpsAgent: agent,
+    httpsAgent: agent,
   })
   if (poolInfoData.success == false && poolInfoData.data.count <= 0) {
     throw new Error('Not found Pool');

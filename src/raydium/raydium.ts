@@ -24,13 +24,13 @@ import {
   RAYDIUM_AMM_URL,
   private_connection,
   RAYDIUM_CLMM_URL,
+  agent,
 } from "../config";
 import { OpenMarketService } from "../services/openmarket.service";
 import { TokenService } from "../services/token.metadata";
 import { RaydiumTokenService } from "../services/raydium.token.service";
 import redisClient from "../services/redis";
 import { syncAmmPoolKeys, syncClmmPoolKeys } from "./raydium.service";
-import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
 
 const solanaConnection = new Connection(PRIVATE_RPC_ENDPOINT, {
@@ -53,9 +53,8 @@ async function initDB(): Promise<void> {
 
 async function initAMM(): Promise<void> {
   console.log(" - AMM Pool data fetching is started...");
-  const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
   const { data:ammData } = await axios.get(RAYDIUM_AMM_URL, {
-      // httpsAgent: agent,
+      httpsAgent: agent,
     })
   console.log(" - AMM Pool data is fetched successfully...");
 
@@ -98,9 +97,8 @@ async function initAMM(): Promise<void> {
 
 async function initCLMM(): Promise<void> {
   console.log(" - CLMM Pool data fetching is started...");
-  const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
   const { data:clmmData } = await axios.get(RAYDIUM_CLMM_URL, {
-    // httpsAgent: agent,
+    httpsAgent: agent,
   })
   console.log(" - CLMM Pool data is fetched successfully...");
 

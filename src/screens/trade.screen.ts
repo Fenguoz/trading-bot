@@ -34,6 +34,7 @@ import bs58 from "bs58";
 import {
   RAYDIUM_PASS_TIME,
   RESERVE_WALLET,
+  agent,
   connection,
   private_connection,
 } from "../config";
@@ -52,7 +53,6 @@ import { getReplyOptionsForSettings } from "./settings.screen";
 import { JitoBundleService } from "../services/jito.bundle";
 import { getSignatureStatus } from "../utils/v0.transaction";
 import axios from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
 
 export const buyCustomAmountScreenHandler = async (
   bot: TelegramBot,
@@ -231,8 +231,6 @@ export const buyHandler = async (
 
     isPumpfunTradable = true;
   } else {
-    const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
-
     const RAYDIUM_API_V3 = 'https://api-v3.raydium.io';
     const { data } = await axios.get(
       `${RAYDIUM_API_V3}/pools/info/mint?mint1=${mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=100&page=1`
@@ -240,7 +238,7 @@ export const buyHandler = async (
         headers: {
           Accept: 'application/json'
         },
-        // httpsAgent: agent,
+        httpsAgent: agent,
       })
     console.log('data', data.data.data[0]);
 
@@ -428,8 +426,6 @@ export const autoBuyHandler = async (
 
     isPumpfunTradable = true;
   } else {
-    const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
-
     const RAYDIUM_API_V3 = 'https://api-v3.raydium.io';
     const { data } = await axios.get(
       `${RAYDIUM_API_V3}/pools/info/mint?mint1=${mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=100&page=1`
@@ -437,7 +433,7 @@ export const autoBuyHandler = async (
         headers: {
           Accept: 'application/json'
         },
-        // httpsAgent: agent,
+        httpsAgent: agent,
       })
     console.log('data', data.data.data[0]);
 
