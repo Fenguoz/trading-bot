@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
-import { TELEGRAM_BOT_API_TOKEN } from "./config";
+import { PROXY_URL, TELEGRAM_BOT_API_TOKEN, USE_PROXY } from "./config";
 import { BotMenu } from "./bot.opts";
 import { callbackQueryHandler } from "./controllers/callback.handler";
 import { messageHandler } from "./controllers/message.handler";
@@ -28,10 +28,12 @@ export interface ReferralIdenticalType {
 const startTradeBot = () => {
   const bot = new TelegramBot(token, {
     polling: true,
-    // request: {
-    //   proxy: 'http://127.0.0.1:1087',
-    //   url: "https://api.telegram.org",
-    // }
+    request: {
+      ...USE_PROXY ? {
+        proxy: PROXY_URL,
+      } : {},
+      url: "https://api.telegram.org",
+    }
   });
   runMonitorUserSchedule(bot);
   // runSOLPriceUpdateSchedule();

@@ -417,12 +417,12 @@ const getRaydiumTokenInfoCaption = async (
       solbalance,
       splbalance
     );
-    if (isAmm && !ammKeys) {
-      syncAmmPoolKeys(poolId);
-    }
-    if (!isAmm && !clmmKeys) {
-      syncClmmPoolKeys(poolId);
-    }
+    // if (isAmm && !ammKeys) {
+    //   syncAmmPoolKeys(poolId);
+    // }
+    // if (!isAmm && !clmmKeys) {
+    //   syncClmmPoolKeys(poolId);
+    // }
     return {
       caption,
       solbalance,

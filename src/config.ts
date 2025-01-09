@@ -31,9 +31,9 @@ export const RAYDIUM_AMM_URL = 'https://api.raydium.io/v2/main/pairs'
 export const RAYDIUM_CLMM_URL = 'https://api.raydium.io/v2/ammV3/ammPools'
 export const PNL_SHOW_THRESHOLD_USD = 0.00000005;
 
-export const useProxy = process.env.USE_PROXY === 'true';
+export const USE_PROXY = process.env.USE_PROXY === 'true';
 export const TWITTER_API_KEY = process.env.TWITTER_API_KEY || "";
 export const PROXY_URL = process.env.PROXY_URL || "http://127.0.0.1:1087";
-export const agent = useProxy ? {
+export const agent = USE_PROXY ? {
   httpsAgent: new HttpsProxyAgent(PROXY_URL),
 } : {};
