@@ -287,7 +287,7 @@ export class RaydiumSwapService {
         `${API_URLS.SWAP_HOST
         }/compute/swap-base-in?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippage}&txVersion=${txVersion}`
         , {
-          httpsAgent: agent,
+          ...agent,
         })
 
       console.log('swapResponse', swapResponse)
@@ -312,7 +312,7 @@ export class RaydiumSwapService {
         inputAccount: isInputSol ? undefined : inputTokenAcc?.toBase58(),
         outputAccount: isOutputSol ? undefined : outputTokenAcc?.toBase58(),
       }, {
-        httpsAgent: agent,
+        ...agent,
       })
 
       if (swapTransactions.success === false) {
@@ -459,7 +459,7 @@ export const getPoolInfoByMint = async (mint: string) => {
   console.log("getPoolId");
 
   const { data: poolInfoData } = await axios.get(`https://api-v3.raydium.io/pools/info/mint?mint1=${mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=10&page=1`, {
-    httpsAgent: agent,
+    ...agent,
   })
   if (poolInfoData.success == false && poolInfoData.data.count <= 0) {
     throw new Error('Not found Pool');

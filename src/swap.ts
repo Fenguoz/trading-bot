@@ -106,14 +106,14 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     success: boolean
     data: { default: { vh: number; h: number; m: number } }
   }>(`${API_URLS.BASE_HOST}${API_URLS.PRIORITY_FEE}`, {
-    httpsAgent: agent,
+    ...agent,
   })
 
   const { data: swapResponse } = await axios.get(
     `${API_URLS.SWAP_HOST
     }/compute/swap-base-in?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippage}&txVersion=${txVersion}`
     , {
-      httpsAgent: agent,
+      ...agent,
     })
 
   if (swapResponse.success === false) {
@@ -137,7 +137,7 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     inputAccount: isInputSol ? undefined : inputTokenAcc?.toBase58(),
     outputAccount: isOutputSol ? undefined : outputTokenAcc?.toBase58(),
   }, {
-    httpsAgent: agent,
+    ...agent,
   })
 
   if (swapTransactions.success === false) {

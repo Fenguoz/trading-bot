@@ -19,7 +19,7 @@ export async function getCoinData(mintStr: string) {
         "Sec-Fetch-Site": "cross-site",
         "If-None-Match": 'W/"43a-tWaCcS4XujSi30IFlxDCJYxkMKg"',
       },
-      httpsAgent: agent,
+      ...agent,
     });
     if (response.status === 200) {
       return response.data;

@@ -238,7 +238,7 @@ export const buyHandler = async (
         headers: {
           Accept: 'application/json'
         },
-        httpsAgent: agent,
+        ...agent,
       })
     console.log('data', data.data.data[0]);
 
@@ -433,7 +433,7 @@ export const autoBuyHandler = async (
         headers: {
           Accept: 'application/json'
         },
-        httpsAgent: agent,
+        ...agent,
       })
     console.log('data', data.data.data[0]);
 

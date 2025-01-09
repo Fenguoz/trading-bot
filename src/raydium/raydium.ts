@@ -54,7 +54,7 @@ async function initDB(): Promise<void> {
 async function initAMM(): Promise<void> {
   console.log(" - AMM Pool data fetching is started...");
   const { data:ammData } = await axios.get(RAYDIUM_AMM_URL, {
-      httpsAgent: agent,
+      ...agent,
     })
   console.log(" - AMM Pool data is fetched successfully...");
 
@@ -98,7 +98,7 @@ async function initAMM(): Promise<void> {
 async function initCLMM(): Promise<void> {
   console.log(" - CLMM Pool data fetching is started...");
   const { data:clmmData } = await axios.get(RAYDIUM_CLMM_URL, {
-    httpsAgent: agent,
+    ...agent,
   })
   console.log(" - CLMM Pool data is fetched successfully...");
 
