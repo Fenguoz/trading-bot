@@ -287,28 +287,28 @@ export const contractInfoScreenHandler = async (
       });
     }
 
-    if (!switchBtn || switchBtn.includes("sell")) {
-      const autoBuyAmount = parseFloat(user.auto_buy_amount);
-      console.log(
-        "🚀 ~ contractInfoScreenHandler ~ autoBuyAmount:",
-        autoBuyAmount
-      );
-      if (user.auto_buy) {
-        console.log(
-          "🚀 ~ contractInfoScreenHandler ~ user.auto_buy:",
-          user.auto_buy
-        );
-        await autoBuyHandler(
-          bot,
-          user,
-          mint,
-          autoBuyAmount,
-          solbalance,
-          gasvalue,
-          slippage
-        );
-      }
-    }
+    // if (!switchBtn || switchBtn.includes("sell")) {
+    //   const autoBuyAmount = parseFloat(user.auto_buy_amount);
+    //   console.log(
+    //     "🚀 ~ contractInfoScreenHandler ~ autoBuyAmount:",
+    //     autoBuyAmount
+    //   );
+    //   if (user.auto_buy) {
+    //     console.log(
+    //       "🚀 ~ contractInfoScreenHandler ~ user.auto_buy:",
+    //       user.auto_buy
+    //     );
+    //     await autoBuyHandler(
+    //       bot,
+    //       user,
+    //       mint,
+    //       autoBuyAmount,
+    //       solbalance,
+    //       gasvalue,
+    //       slippage
+    //     );
+    //   }
+    // }
   } catch (e) {
     console.log("~ contractInfoScreenHandler ~", e);
   }

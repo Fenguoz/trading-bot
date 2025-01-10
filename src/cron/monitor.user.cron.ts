@@ -28,7 +28,7 @@ var currentTime: number; // 当前时间（每秒更新）
 var twitterHandlesLock: string[] = [];
 var bot: TelegramBot;
 
-const EVERY_1_MIN = "*/5 * * * * *";
+const EVERY_1_MIN = "*/1 * * * * *";
 export const runMonitorUserSchedule = async (telegramBot: TelegramBot) => {
   bot = telegramBot;
   const userMonitors = await UserMonitorService.find({ 'status': true });
