@@ -45,20 +45,20 @@ import { getCoinData } from "../pump/api";
 import { TokenSecurityInfoDataType } from "../services/birdeye.api.service";
 
 export const inline_keyboards = [
-  [{ text: "🖼 Generate PNL Card", command: "pnl_card" }],
+  // [{ text: "🖼 Generate PNL Card", command: "pnl_card" }],
   [
-    { text: "Buy 0.01 SOL", command: "buytoken_0.01" },
-    { text: "Buy 1 SOL", command: "buytoken_1" },
+    { text: "购买 0.01 SOL", command: "buytoken_0.01" },
+    { text: "购买 1 SOL", command: "buytoken_1" },
   ],
   [
-    { text: "Buy 5 SOL", command: "buytoken_5" },
-    { text: "Buy 10 SOL", command: "buytoken_10" },
+    { text: "购买 5 SOL", command: "buytoken_5" },
+    { text: "购买 10 SOL", command: "buytoken_10" },
   ],
-  [{ text: "Buy X SOL", command: "buy_custom" }],
-  [{ text: "🔁 Switch To Sell", command: "SS_" }],
+  [{ text: "购买 X SOL", command: "buy_custom" }],
+  [{ text: "🔁 切换到出售", command: "SS_" }],
   [
-    { text: "🔄 Refresh", command: "refresh" },
-    { text: "❌ Close", command: "dismiss_message" },
+    { text: "🔄 刷新", command: "refresh" },
+    { text: "❌ 关闭", command: "dismiss_message" },
   ],
 ];
 
@@ -185,41 +185,41 @@ export const contractInfoScreenHandler = async (
 
     if (switchBtn == "switch_buy") {
       inline_keyboards[1] = [
-        { text: "Sell 10%", command: `selltoken_10` },
-        { text: "Sell 50%", command: `selltoken_50` },
+        { text: "出售 10%", command: `selltoken_10` },
+        { text: "出售 50%", command: `selltoken_50` },
       ];
       inline_keyboards[2] = [
-        { text: "Sell 75%", command: `selltoken_75` },
-        { text: "Sell 100%", command: `selltoken_100` },
+        { text: "出售 75%", command: `selltoken_75` },
+        { text: "出售 100%", command: `selltoken_100` },
       ];
       inline_keyboards[3] = [{ text: "Sell X%", command: `sell_custom` }];
       inline_keyboards[4] = [
-        { text: "🔁 Switch To Buy", command: `SS_${mint}` },
+        { text: "🔁 切换到购买", command: `SS_${mint}` },
       ];
     } else {
       inline_keyboards[1] = [
         {
-          text: `Buy ${preset_setting[0]} SOL`,
+          text: `购买 ${preset_setting[0]} SOL`,
           command: `buytoken_${preset_setting[0]}`,
         },
         {
-          text: `Buy ${preset_setting[1]} SOL`,
+          text: `购买 ${preset_setting[1]} SOL`,
           command: `buytoken_${preset_setting[1]}`,
         },
       ];
       inline_keyboards[2] = [
         {
-          text: `Buy ${preset_setting[2]} SOL`,
+          text: `购买 ${preset_setting[2]} SOL`,
           command: `buytoken_${preset_setting[2]}`,
         },
         {
-          text: `Buy ${preset_setting[3]} SOL`,
+          text: `购买 ${preset_setting[3]} SOL`,
           command: `buytoken_${preset_setting[3]}`,
         },
       ];
       inline_keyboards[3] = [{ text: `Buy X SOL`, command: `buy_custom` }];
       inline_keyboards[4] = [
-        { text: `🔁 Switch To Sell`, command: `BS_${mint}` },
+        { text: `🔁 切换到出售`, command: `BS_${mint}` },
       ];
     }
 
