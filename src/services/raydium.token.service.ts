@@ -86,5 +86,16 @@ export const RaydiumTokenService = {
     } catch (err: any) {
       throw new Error(err.message);
     }
-  }
+  },
+  findByMint: async (mint: string) => {
+    try {
+      const result = await TokenSchema.findOne({ mint }).sort({ timeStamp: -1 });
+      if (result == null) {
+        return null
+      }
+      return result;
+    } catch (err: any) {
+      throw new Error(err.message);
+    }
+  },
 };

@@ -55,6 +55,7 @@ import {
   setSOLPayoutAddressHandler,
 } from "../screens/payout.screen";
 import { addMonitorHandler, delMonitorHandler, useMonitorHandler } from "../screens/monitor.screen";
+import { isValidWalletAddress } from "../utils";
 
 export const callbackQueryHandler = async (
   bot: TelegramBot,
@@ -318,6 +319,15 @@ export const callbackQueryHandler = async (
       const monitor_name = data.command.slice(delmonitorStr.length);
       console.log('monitor_name', monitor_name);
       await delMonitorHandler(bot, callbackMessage, monitor_name);
+      return;
+    }
+
+    const tokenStr = "token_";
+    if (data.command.includes(tokenStr)) {
+      const mint = data.command.slice(tokenStr.length);
+      if(isValidWalletAddress(mint)){
+        await contractInfoScreenHandler(bot, callbackMessage, mint);
+      }
       return;
     }
 

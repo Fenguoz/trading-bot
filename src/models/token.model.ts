@@ -304,11 +304,26 @@ const Token = new Schema(
     poolId: {
       type: String,
       default: "",
-      required: true,
-      unique: true,
     },
     creation_ts: {
       type: Number,
+      required: true,
+    },
+    price: {
+      type: String,
+      default: "",
+    },
+    platform: {
+      type: String,
+      default: "",
+    },
+    decimals: {
+      type: Number,
+      default: 9,
+    },
+    isToken2022: {
+      type: Boolean,
+      default: false,
       required: true,
     },
     ammKeys: {

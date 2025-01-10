@@ -1,4 +1,5 @@
-import { BIRDEYE_API_URL, REQUEST_HEADER } from "../config";
+import axios from "axios";
+import { agent, BIRDEYE_API_URL, REQUEST_HEADER } from "../config";
 
 export const BirdEyeAPIService = {
   getTokenOverview: (mint: string | undefined | null) => {
@@ -8,16 +9,19 @@ export const BirdEyeAPIService = {
         return;
       }
       const url = BIRDEYE_API_URL + "/defi/token_overview?address=" + mint;
-      const options = { method: "GET", headers: REQUEST_HEADER };
-      fetch(url, options)
-        .then((response) => {
-          if (!response.ok) {
+      axios.get(url, {
+        headers: REQUEST_HEADER,
+        ...agent,
+      })
+       .then((response) => {
+        console.log(response)
+          if (response.status != 200) {
             throw new Error("Failed to fetch data");
           }
-          return response.json();
+          return response.data;
         })
-        .then((data) => resolve(data.data))
-        .catch((err) => reject(err));
+       .then((data) => resolve(data.data))
+       .catch((err) => reject(err));
     });
   },
   getTokenSecurity: (mint: string | undefined | null) => {
@@ -46,16 +50,19 @@ export const BirdEyeAPIService = {
         return;
       }
       const url = BIRDEYE_API_URL + "/defi/token_creation_info?address=" + mint;
-      const options = { method: "GET", headers: REQUEST_HEADER };
-      fetch(url, options)
-        .then((response) => {
-          if (!response.ok) {
+      axios.get(url, {
+        headers: REQUEST_HEADER,
+        ...agent,
+      })
+       .then((response) => {
+        console.log(response)
+          if (response.status != 200) {
             throw new Error("Failed to fetch data");
           }
-          return response.json();
+          return response.data;
         })
-        .then((data) => resolve(data.data))
-        .catch((err) => reject(err));
+       .then((data) => resolve(data.data))
+       .catch((err) => reject(err));
     });
   },
 };

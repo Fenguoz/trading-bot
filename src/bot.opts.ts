@@ -1,7 +1,7 @@
 export const BotMenu = [
   { command: 'start', description: 'Welcome' },
+  { command: 'wallet', description: 'Wallet' },
   { command: 'monitor', description: 'Monitor' },
-  // { command: 'position', description: 'Positions' },
   { command: 'settings', description: 'Settings & Tools' },
 ];
 

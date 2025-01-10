@@ -9,6 +9,7 @@ import { settingScreenHandler } from "./screens/settings.screen";
 import { MonitorScreenHandler } from "./screens/monitor.screen";
 import { runMonitorUserSchedule } from "./cron/monitor.user.cron";
 import { runSOLPriceUpdateSchedule } from "./cron/sol.price.cron";
+import { WalletScreenHandler } from "./screens/wallet.screen";
 
 const token = TELEGRAM_BOT_API_TOKEN;
 
@@ -74,6 +75,9 @@ const startTradeBot = () => {
         );
       }
     }
+  });
+  bot.onText(/\/wallet/, async (msg: TelegramBot.Message) => {
+    await WalletScreenHandler(bot, msg);
   });
   bot.onText(/\/monitor/, async (msg: TelegramBot.Message) => {
     await MonitorScreenHandler(bot, msg);

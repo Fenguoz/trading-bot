@@ -461,7 +461,7 @@ export const getPoolInfoByMint = async (mint: string) => {
   const { data: poolInfoData } = await axios.get(`https://api-v3.raydium.io/pools/info/mint?mint1=${mint}&poolType=all&poolSortField=default&sortType=desc&pageSize=10&page=1`, {
     ...agent,
   })
-  if (poolInfoData.success == false && poolInfoData.data.count <= 0) {
+  if (poolInfoData.success == false || poolInfoData.data.count <= 0) {
     throw new Error('Not found Pool');
   }
 
