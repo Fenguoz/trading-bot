@@ -26,6 +26,7 @@ import {
   UserTradeSettingService,
 } from "../services/user.trade.setting.service";
 import { welcomeKeyboardList } from "./welcome.screen";
+import { addUserMonitor, removeUserFromMonitorAll } from "../cron/monitor.user.cron";
 // import { GenerateReferralCode } from "./referral.link.handler";
 // import { TokenService } from "../services/token.metadata";
 // import { PNLService } from "../services/pnl.service";
@@ -58,7 +59,7 @@ export const settingScreenHandler = async (
 
     const caption =
       `<b>LeekTrade</b>\n\n` +
-      `<b>自动购买</b>\n` +
+      `<b>监控自动购买</b>\n` +
       `粘贴代币地址后自动执行购买。自定义 Sol 数量并按下按钮以激活/停用。.\n\n` +
       `<b>你的活跃钱包:</b>\n` +
       `${copytoclipboard(wallet_address)}`;
@@ -825,6 +826,12 @@ export const switchAutoBuyOptsHandler = async (
     const isAutoBuy = !user.auto_buy;
     await UserService.updateMany({ username }, { auto_buy: isAutoBuy });
 
+    if(isAutoBuy) {
+      await addUserMonitor(chat_id);
+    } else {
+      await removeUserFromMonitorAll(chat_id);
+    }
+
     const reply_markup = await getReplyOptionsForSettings(
       chat_id,
       isAutoBuy,
@@ -898,7 +905,7 @@ export const getReplyOptionsForSettings = async (
       ],
       [
         {
-          text: `${!auto_buy ? "自动购买 ☑️" : "自动购买 ✅"}`,
+          text: `${!auto_buy ? "监控自动购买 ☑️" : "监控自动购买 ✅"}`,
           callback_data: JSON.stringify({
             command: `autobuy_switch`,
           }),

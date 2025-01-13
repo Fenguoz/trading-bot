@@ -1,16 +1,15 @@
 import cron from "node-cron";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { UserMonitorService } from "../services/user.monitor.service";
 import { UserService } from "../services/user.service";
 import { fetchTwitterUserTweets } from "../services/twitter.service";
 import { MonitorService } from "../services/monitor.service";
 import { runMultitasking } from "../utils/task";
-import bs58 from 'bs58'
 import { autoBuyHandler } from "../screens/trade.screen";
-import { MsgLogService } from "../services/msglog.service";
 import { UserTradeSettingService } from "../services/user.trade.setting.service";
 import { TokenService } from "../services/token.metadata";
 import TelegramBot from "node-telegram-bot-api";
+import { MonitorLogService } from "../services/monitor.log.service";
 
 interface MonitoredData {
   monitorUser: string,
@@ -39,20 +38,26 @@ export const runMonitorUserSchedule = async (telegramBot: TelegramBot) => {
     for (let userMonitor of userMonitors) {
       const { chat_id, monitor_name } = userMonitor;
       console.log(chat_id, monitor_name);
-      const frequency = await UserService.getFrequency(Number(chat_id));
+
+      //判断是否开启自动购买
+      const user = await UserService.findOne({ chat_id });
+      if (!user || !user.auto_buy) {
+        continue;
+      }
+      const frequency = user.frequency ?? '4';
       if (!_monitoredData[monitor_name]) {
         _monitoredData[monitor_name] = {
           monitorUser: monitor_name,
           userConfig: [{
             userId: Number(chat_id),
-            frequency,
+            frequency: Number(frequency),
             lastRunTime: Date.now(),
           }]
         };
       } else {
         _monitoredData[monitor_name].userConfig.push({
           userId: Number(chat_id),
-          frequency,
+          frequency: Number(frequency),
           lastRunTime: Date.now(),
         });
       }
@@ -98,9 +103,10 @@ const monitorUser = async () => {
 
       // 没有有效用户
       if (validUsers.length == 0) {
-        console.log(`${Date.now()} monitor: ${_monitoredData.monitorUser} no valid user`);
+        // console.log(`${Date.now()} monitor: ${_monitoredData.monitorUser} no valid user`);
         return;
       }
+      console.log('monitor', _monitoredData.monitorUser);
       console.log('validUsers', validUsers);
 
       //根据速率优先级排序
@@ -144,7 +150,13 @@ const monitorUser = async () => {
             continue;
           }
 
-          // await this.db.editMonitorLogs(username, { id: tweet.tweet_id, address: address, time: Date.now() });
+          await MonitorLogService.create({
+            monitor_name: username,
+            monitor_tweet_id: tweet.tweet_id,
+            chat_ids: validUsers,
+            address: address,
+            type: 'twiiter',
+          });
           await handleMonitor(username, address, validUsers);
         }
 
@@ -270,6 +282,21 @@ export const removeUserFromMonitorAll = async (userId: number): Promise<void> =>
         _monitoredData.userConfig.splice(_monitoredData.userConfig.indexOf(_userConfig), 1);
         break;
       }
+    }
+  }
+}
+
+//根据用户开启监控
+export const addUserMonitor = async (chat_id: number): Promise<void> => {
+  const userMonitors = await UserMonitorService.find({ chat_id, status: true });
+  if (userMonitors.length > 0) {
+    for (const userMonitor of userMonitors) {
+      const { monitor_name } = userMonitor;
+
+      if (await isUserMonitored(chat_id, monitor_name)) {
+        continue;
+      }
+      await addUserFromMonitor(chat_id, monitor_name);
     }
   }
 }

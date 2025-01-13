@@ -53,6 +53,7 @@ import { getReplyOptionsForSettings } from "./settings.screen";
 import { JitoBundleService } from "../services/jito.bundle";
 import { getSignatureStatus } from "../utils/v0.transaction";
 import axios from "axios";
+import { TxLogService } from "../services/tx.log.service";
 
 export const buyCustomAmountScreenHandler = async (
   bot: TelegramBot,
@@ -544,6 +545,14 @@ export const autoBuyHandler = async (
     } else {
       resultCaption = getcaption(`🔴 <b>购买失败</b>\n`, suffix);
     }
+
+    await TxLogService.create({
+      chat_id,
+      address: user.wallet_address,
+      hash: signature,
+      status: status ? "success" : "failed",
+      type: "monitor_auto_buy",
+    });
 
     await bot.editMessageText(resultCaption, {
       message_id: pendingTxMsgId,
