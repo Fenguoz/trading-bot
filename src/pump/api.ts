@@ -1,4 +1,5 @@
 import axios from "axios";
+import { agent } from "../config";
 
 export async function getCoinData(mintStr: string) {
   try {
@@ -18,6 +19,7 @@ export async function getCoinData(mintStr: string) {
         "Sec-Fetch-Site": "cross-site",
         "If-None-Match": 'W/"43a-tWaCcS4XujSi30IFlxDCJYxkMKg"',
       },
+      ...agent,
     });
     if (response.status === 200) {
       return response.data;

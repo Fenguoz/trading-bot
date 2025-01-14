@@ -15,12 +15,12 @@ import {
 } from '@solana/spl-token'
 import axios from 'axios'
 import { API_URLS, parseTokenAccountResp } from '@raydium-io/raydium-sdk-v2'
-import { HttpsProxyAgent } from 'https-proxy-agent'
 import dotenv from 'dotenv';
 import { JitoClient } from './jito'
 import { PumpFunSDK } from './pump/pumpfun'
 import { AnchorProvider, Wallet } from "@coral-xyz/anchor";
 import { getCoinData } from './pump/api'
+import { agent } from './config';
 
 dotenv.config();
 
@@ -95,8 +95,6 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     return
   }
 
-  // const agent = new HttpsProxyAgent('http://127.0.0.1:1087');
-
   // get statistical transaction fee from api
   /**
    * vh: very high
@@ -108,14 +106,14 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     success: boolean
     data: { default: { vh: number; h: number; m: number } }
   }>(`${API_URLS.BASE_HOST}${API_URLS.PRIORITY_FEE}`, {
-    // httpsAgent: agent,
+    ...agent,
   })
 
   const { data: swapResponse } = await axios.get(
     `${API_URLS.SWAP_HOST
     }/compute/swap-base-in?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippage}&txVersion=${txVersion}`
     , {
-      // httpsAgent: agent,
+      ...agent,
     })
 
   if (swapResponse.success === false) {
@@ -139,7 +137,7 @@ export const Swap = async (buyer: Keypair, address: string, config: SwapConfig) 
     inputAccount: isInputSol ? undefined : inputTokenAcc?.toBase58(),
     outputAccount: isOutputSol ? undefined : outputTokenAcc?.toBase58(),
   }, {
-    // httpsAgent: agent,
+    ...agent,
   })
 
   if (swapTransactions.success === false) {
