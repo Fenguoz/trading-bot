@@ -6,6 +6,7 @@ import MonitorLogSchema from "./monitor.log.model";
 import UserMonitorSchema from "./user.monitor.model";
 import OpenMarketSchema from "./openmarket.model";
 import TxLogSchema from "./tx.log.model";
+import ReferralHistorySchema from "./referral.history";
 
 export {
   UserSchema,
@@ -16,4 +17,5 @@ export {
   UserMonitorSchema,
   OpenMarketSchema,
   TxLogSchema,
+  ReferralHistorySchema,
 };

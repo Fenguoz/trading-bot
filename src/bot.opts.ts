@@ -12,7 +12,7 @@ export const SELL_XPRO_TEXT = `🌳Sell X %\n\n<i>💲 Enter X Value in format "
 export const WITHDRAW_XTOKEN_TEXT = `🌳Withdraw X token\n\n<i>💲 Enter X Value in format "25.5"</i>`;
 export const SET_SLIPPAGE_TEXT = `滑点 X %\n\n<i>💲 以“2.5”格式输入 X 值</i>`;
 export const SET_FREQUENCY_TEXT = `🌳 速率\n\n<i>💲 请输入速率值，例如"4"</i>`;
-export const TradeBotID = process.env.GROWTRADE_BOT_ID;
+export const TradeBotID = process.env.TRADE_BOT_ID;
 export const WELCOME_REFERRAL = 'https://imgtr.ee/images/2024/04/22/24635465dd390956e0fb39857a66bab5.png';
 export const BridgeBotID = process.env.BridgeBotID;
 

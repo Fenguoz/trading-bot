@@ -5,7 +5,7 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import bs58 from "bs58";
-// import { get_referral_info } from "./referral.service";
+import { get_referral_info } from "./referral.service";
 import { RESERVE_WALLET } from "../config";
 import {
   TOKEN_2022_PROGRAM_ID,
@@ -19,26 +19,24 @@ export class FeeService {
     total_fee_in_sol: number,
     total_fee_in_token: number,
     chat_id: number,
-    // username: string,
     pk: string,
     mint: string,
     isToken2022: boolean
   ) {
     try {
       const wallet = Keypair.fromSecretKey(bs58.decode(pk));
-      // let ref_info = await get_referral_info(username);
-      // console.log("🚀 ~ ref_info:", ref_info);
+      let ref_info = await get_referral_info(chat_id);
+      console.log("🚀 ~ ref_info:", ref_info);
 
       let referralWallet: PublicKey = RESERVE_WALLET;
-      // if (ref_info && ref_info.referral_address) {
-      //   const { referral_address } = ref_info;
-      //   console.log("🚀 ~ referral_address:", referral_address);
-      //   referralWallet = new PublicKey(ref_info.referral_address);
-      // }
+      if (ref_info && ref_info.referral_address) {
+        const { referral_address } = ref_info;
+        console.log("🚀 ~ referral_address:", referral_address);
+        referralWallet = new PublicKey(ref_info.referral_address);
+      }
 
-      // console.log("🚀 ~ referralWallet:", referralWallet);
-      // const referralFeePercent = ref_info?.referral_option ?? 0; // 25%
-      const referralFeePercent = 0; // 25%
+      console.log("🚀 ~ referralWallet:", referralWallet);
+      const referralFeePercent = ref_info?.referral_option ?? 0; // 25%
 
       const referralFee = Number(
         ((total_fee_in_sol * referralFeePercent) / 100).toFixed(0)
