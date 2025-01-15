@@ -66,6 +66,7 @@ const startTradeBot = () => {
       if (chat.username) {
         const data = await UserService.findLastOne({ username: chat.username });
         if (data && data.referral_code && data.referral_code !== "") return;
+        if(data && data.referral_code == referralcode) return;
         await UserService.updateMany(
           { username: chat.username },
           {

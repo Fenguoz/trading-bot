@@ -56,6 +56,7 @@ import {
 } from "../screens/payout.screen";
 import { addMonitorHandler, delMonitorHandler, useMonitorHandler } from "../screens/monitor.screen";
 import { isValidWalletAddress } from "../utils";
+import { OpenReferralWindowHandler } from "../screens/referral.link.handler";
 
 export const callbackQueryHandler = async (
   bot: TelegramBot,
@@ -248,9 +249,9 @@ export const callbackQueryHandler = async (
       await walletViewHandler(bot, callbackMessage);
       return;
     }
-    // if (data.command === "referral") {
-    //   await OpenReferralWindowHandler(bot, callbackMessage);
-    // }
+    if (data.command === "referral") {
+      await OpenReferralWindowHandler(bot, callbackMessage);
+    }
     // Open payout dashboard
     if (data.command === "payout_address") {
       await sendPayoutAddressManageScreen(
