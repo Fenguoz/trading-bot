@@ -12,9 +12,8 @@
     "telegram"
   ],
   "scripts": {
-    "serve": "ts-node ./serve.ts",
-    "dev": "nodemon ./serve.ts",
-    "start": "ts-node ./src/index.ts"
+    "start": "ts-node ./serve.ts",
+    "dev": "nodemon ./serve.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

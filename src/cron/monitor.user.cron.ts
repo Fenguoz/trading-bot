@@ -223,6 +223,9 @@ export const getUserTwitterHandles = async (username: string, isRefresh: boolean
   }
   const { id, monitor_cursor } = monitor;
   const data: any = await fetchTwitterUserTweets(username, monitor_cursor);
+  if (!data) {
+    return { timeline: [], monitor_tweet_id: 0 };
+  }
   if (data.timeline.length > 0) {
     // 更新用户的 cursor
     if (isRefresh) {
