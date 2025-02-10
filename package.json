@@ -12,7 +12,8 @@
     "telegram"
   ],
   "scripts": {
-    "serve": "nodemon ./serve.ts",
+    "serve": "ts-node ./serve.ts",
+    "dev": "nodemon ./serve.ts",
     "start": "ts-node ./src/index.ts"
   },
   "dependencies": {
