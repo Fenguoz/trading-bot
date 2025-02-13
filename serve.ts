@@ -1,5 +1,6 @@
 require("dotenv").config();
 import startTradeBot from "./src/main";
+import { initSdk } from "./src/raydium";
 import connectMongodb from "./src/services/mongodb";
 import redisClient from "./src/services/redis";
 
@@ -18,7 +19,9 @@ const connectRedis = () => {
   redisClient.on('connect', function () {
     console.log('Redis database connected' + '\n');
     // start tradeBot
-    startTradeBot();
+    // startTradeBot();
+
+    initSdk();
   });
 
   redisClient.on('reconnecting', function () {

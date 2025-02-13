@@ -8,7 +8,7 @@ import {
   TokenAmount,
 } from "@raydium-io/raydium-sdk";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Connection, PublicKey, KeyedAccountInfo } from "@solana/web3.js";
+import { Connection, PublicKey, KeyedAccountInfo, Keypair, clusterApiUrl } from "@solana/web3.js";
 import {
   RAYDIUM_LIQUIDITY_PROGRAM_ID_V4,
   OPENBOOK_PROGRAM_ID,
@@ -17,7 +17,7 @@ import {
 import { MinimalMarketLayoutV3 } from "./market";
 import { MintLayout, TokenAccountLayout } from "./types";
 import {
-  connection,
+  // connection,
   COMMITMENT_LEVEL,
   RPC_WEBSOCKET_ENDPOINT,
   PRIVATE_RPC_ENDPOINT,
@@ -32,6 +32,8 @@ import { RaydiumTokenService } from "../services/raydium.token.service";
 import redisClient from "../services/redis";
 import { syncAmmPoolKeys, syncClmmPoolKeys } from "./raydium.service";
 import axios from "axios";
+import { Raydium, TxVersion, DEVNET_PROGRAM_ID, BasicPoolInfo } from "@raydium-io/raydium-sdk-v2";
+import bs58 from 'bs58'
 
 const solanaConnection = new Connection(PRIVATE_RPC_ENDPOINT, {
   wsEndpoint: RPC_WEBSOCKET_ENDPOINT,
@@ -45,6 +47,100 @@ export interface MinimalTokenAccountData {
 
 const existingLiquidityPools: Set<string> = new Set<string>();
 const existingOpenBookMarkets: Set<string> = new Set<string>();
+
+export const owner: Keypair = Keypair.fromSecretKey(bs58.decode('62Nr358wDrER5q626KWvSRNZMVf5WoRMzJcM2XNDANNdFw8ARZct78P6hccPzxSdex1V6RVUAyJfGirutXFFGSRL'))
+// export const connection = new Connection('https://go.getblock.io/36581a7546844ed08a4b38ad9b88e32f') //<YOUR_RPC_URL>
+const connection = new Connection(clusterApiUrl('devnet'))
+export const txVersion = TxVersion.V0 // or TxVersion.LEGACY
+const cluster = 'devnet' // 'mainnet' | 'devnet'
+
+let raydium: Raydium | undefined
+export const initSdk = async (params?: { loadToken?: boolean }) => {
+  if (raydium) return raydium
+  console.log(`connect to rpc ${connection.rpcEndpoint} in ${cluster}`)
+
+  raydium = await Raydium.load({
+    owner,
+    connection,
+    cluster,
+    disableFeatureCheck: true,
+    disableLoadToken: !params?.loadToken,
+    blockhashCommitment: 'finalized',
+    // urlConfigs: {
+    //   BASE_HOST: '<API_HOST>', // api url configs, currently api doesn't support devnet
+    // },
+  })
+
+  /**
+   * By default: sdk will automatically fetch token account data when need it or any sol balace changed.
+   * if you want to handle token account by yourself, set token account data after init sdk
+   * code below shows how to do it.
+   * note: after call raydium.account.updateTokenAccount, raydium will not automatically fetch token account
+   */
+
+  /*  
+  raydium.account.updateTokenAccount(await fetchTokenAccountData())
+  connection.onAccountChange(owner.publicKey, async () => {
+    raydium!.account.updateTokenAccount(await fetchTokenAccountData())
+  })
+  */
+
+  await raydium.fetchChainTime()
+
+  // strongly recommend cache all pool data, it will reduce lots of data fetching time
+  // code below is a simple way to cache it, you can implement it with any other ways
+  // let poolData = readCachePoolData(1000 * 60 * 60 * 24 * 10) // example for cache 1 day
+  let  poolData = await raydium.tradeV2.fetchRoutePoolBasicInfo({
+      amm: DEVNET_PROGRAM_ID.AmmV4,
+      clmm: DEVNET_PROGRAM_ID.CLMM,
+      cpmm: DEVNET_PROGRAM_ID.CREATE_CPMM_POOL_PROGRAM,
+    })
+    // devent pool info
+    // fetchRoutePoolBasicInfo({
+    //   amm: DEVNET_PROGRAM_ID.AmmV4,
+    //   clmm: DEVNET_PROGRAM_ID.CLMM,
+    //   cpmm: DEVNET_PROGRAM_ID.CREATE_CPMM_POOL_PROGRAM,
+    // })
+    writeCachePoolData(poolData)
+    
+}
+
+export const writeCachePoolData = (data: {
+  ammPools: BasicPoolInfo[]
+  clmmPools: BasicPoolInfo[]
+  cpmmPools: BasicPoolInfo[]
+}) => {
+  
+  data.ammPools.map(async (p) => {
+    const data = {
+      poolId: p.id.toBase58(),
+      version: p.version,
+      mintA: p.mintA.toBase58(),
+      mintB: p.mintB.toBase58(),
+    }
+    await RaydiumTokenService.create(data);
+  })
+  data.clmmPools.map(async (p) => {
+    const data = {
+      poolId: p.id.toBase58(),
+      version: p.version,
+      mintA: p.mintA.toBase58(),
+      mintB: p.mintB.toBase58(),
+    }
+    await RaydiumTokenService.create(data);
+  })
+  data.cpmmPools.map(async (p) => {
+    const data = {
+      poolId: p.id.toBase58(),
+      version: p.version,
+      mintA: p.mintA.toBase58(),
+      mintB: p.mintB.toBase58(),
+    }
+    await RaydiumTokenService.create(data);
+  })
+
+}
+
 
 async function initDB(): Promise<void> {
   initAMM();
