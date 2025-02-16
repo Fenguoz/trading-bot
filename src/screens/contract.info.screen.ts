@@ -40,6 +40,7 @@ import {
   getPriceInSOL,
   syncAmmPoolKeys,
   syncClmmPoolKeys,
+  syncCpmmPoolKeys,
 } from "../raydium/raydium.service";
 import { getCoinData } from "../pump/api";
 import { TokenSecurityInfoDataType } from "../services/birdeye.api.service";
@@ -91,26 +92,28 @@ export const contractInfoScreenHandler = async (
     let isJupiterTradable = false;
     let isPumpfunTradable = false;
     let isRaydiumTradable = false;
-    const raydiumPoolInfo = await RaydiumTokenService.findLastOne({ mint });
+    const raydiumPoolInfoA = await RaydiumTokenService.findLastOne({ mintA: mint });
+    const raydiumPoolInfoB = await RaydiumTokenService.findLastOne({ mintB: mint });
+    const raydiumPoolInfo = raydiumPoolInfoA ?? raydiumPoolInfoB;
     if (raydiumPoolInfo) {//Raydium Cache
       const { creation_ts } = raydiumPoolInfo;
       const duration = Date.now() - creation_ts;
       // 120minutes
-      if (duration < RAYDIUM_PASS_TIME) {
-        const captionForRaydium = await getRaydiumTokenInfoCaption(
-          raydiumPoolInfo,
-          user.wallet_address
-        );
-        console.log('captionForRaydium', captionForRaydium)
-        if (captionForRaydium) {
-          bot.deleteMessage(chat_id, pending.message_id);
-          caption = captionForRaydium.caption;
-          solbalance = captionForRaydium.solbalance;
-          splbalance = captionForRaydium.splbalance;
+      // if (duration < RAYDIUM_PASS_TIME) {
+      const captionForRaydium = await getRaydiumTokenInfoCaption(
+        raydiumPoolInfo,
+        user.wallet_address
+      );
+      console.log('captionForRaydium', captionForRaydium)
+      if (captionForRaydium) {
+        bot.deleteMessage(chat_id, pending.message_id);
+        caption = captionForRaydium.caption;
+        solbalance = captionForRaydium.solbalance;
+        splbalance = captionForRaydium.splbalance;
 
-          isRaydiumTradable = true;
-        }
+        isRaydiumTradable = true;
       }
+      // }
     }
 
     if (!isRaydiumTradable) {//Pump
@@ -320,9 +323,10 @@ const getRaydiumTokenInfoCaption = async (
 ) => {
   try {
     // Raydium Info
-    const { name, symbol, mint, poolId, isAmm, ammKeys, clmmKeys } =
+    const { name, symbol, mintA, mintB, poolId, version, ammKeys, clmmKeys, cpmmKeys } =
       raydiumPoolInfo;
 
+    let mint = mintA === NATIVE_MINT.toBase58() ? mintB : mintA;
     let tokenName = name;
     let tokenSymbol = symbol;
     if (tokenName === "" || tokenSymbol === "") {
@@ -359,27 +363,24 @@ const getRaydiumTokenInfoCaption = async (
 
     // const splvalue = priceInUsd * splbalance;
 
-    // const quoteTemp = (await calcAmountOut(
-    //   connection,
-    //   new PublicKey(mint),
-    //   decimals,
-    //   NATIVE_MINT,
-    //   9,
-    //   poolId,
-    //   splbalance,
-    //   isAmm,
-    //   ammKeys,
-    //   clmmKeys
-    // )) as QuoteRes;
+    const quoteTemp = (await calcAmountOut(
+      connection,
+      new PublicKey(mint),
+      decimals,
+      NATIVE_MINT,
+      9,
+      poolId,
+      splbalance,
+      version,
+      ammKeys,
+      clmmKeys
+    )) as QuoteRes;
 
-    const quote = null;
-    // const quote = splbalance > 0 ? quoteTemp : null;
+    const quote = splbalance > 0 ? quoteTemp : null;
 
-    const priceInSOL = await getPriceInSOL(mint);
-    // const priceInSOL = quoteTemp.priceInSol; //  await getPriceInSOL(mint);
+    const priceInSOL = quoteTemp.priceInSol; //  await getPriceInSOL(mint);
     const priceInUsd = (priceInSOL ?? 0) * solprice;
-    const priceImpact = 0;
-    // const priceImpact = quote ? quote.priceImpactPct : 0;
+    const priceImpact = quote ? quote.priceImpactPct : 0;
 
     const supply = Number(metadata.parsed.info.supply) / 10 ** Number(decimals);
     // const liquidity = baseBalance;
@@ -417,12 +418,15 @@ const getRaydiumTokenInfoCaption = async (
       solbalance,
       splbalance
     );
-    // if (isAmm && !ammKeys) {
-    //   syncAmmPoolKeys(poolId);
-    // }
-    // if (!isAmm && !clmmKeys) {
-    //   syncClmmPoolKeys(poolId);
-    // }
+    if (version == 4 && !ammKeys) {
+      syncAmmPoolKeys(poolId);
+    }
+    if (version == 6 && !clmmKeys) {
+      syncClmmPoolKeys(poolId);
+    }
+    if (version == 7 && !cpmmKeys) {
+      syncCpmmPoolKeys(poolId);
+    }
     return {
       caption,
       solbalance,

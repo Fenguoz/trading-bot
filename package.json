@@ -22,6 +22,7 @@
     "@raydium-io/raydium-sdk": "^1.3.1-beta.58",
     "@raydium-io/raydium-sdk-v2": "^0.1.94-alpha",
     "@solana/spl-token": "^0.4.9",
+    "@types/decimal.js": "^7.4.3",
     "axios": "^1.7.9",
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7",

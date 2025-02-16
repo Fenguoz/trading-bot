@@ -117,6 +117,7 @@ export const writeCachePoolData = (data: {
       version: p.version,
       mintA: p.mintA.toBase58(),
       mintB: p.mintB.toBase58(),
+      creation_ts: Date.now(),
     }
     await RaydiumTokenService.create(data);
   })
@@ -126,6 +127,7 @@ export const writeCachePoolData = (data: {
       version: p.version,
       mintA: p.mintA.toBase58(),
       mintB: p.mintB.toBase58(),
+      creation_ts: Date.now(),
     }
     await RaydiumTokenService.create(data);
   })
@@ -135,6 +137,7 @@ export const writeCachePoolData = (data: {
       version: p.version,
       mintA: p.mintA.toBase58(),
       mintB: p.mintB.toBase58(),
+      creation_ts: Date.now(),
     }
     await RaydiumTokenService.create(data);
   })
