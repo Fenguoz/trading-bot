@@ -295,8 +295,15 @@ const ApiMintASchema = new Schema(
       default: "",
     },
     extensions: {
-      type: String,
-      default: "",
+      type: new Schema(
+        {
+          feeConfig: {
+            type: String,
+            default: "",
+          },
+        },
+        { _id: false }
+      )
     },
   },
   { _id: false }
@@ -316,8 +323,15 @@ const ApiMintBSchema = new Schema(
       default: "",
     },
     extensions: {
-      type: String,
-      default: "",
+      type: new Schema(
+        {
+          feeConfig: {
+            type: String,
+            default: "",
+          },
+        },
+        { _id: false }
+      )
     },
   },
   { _id: false }

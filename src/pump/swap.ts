@@ -41,6 +41,7 @@ import { JitoBundleService, tipAccounts } from "../services/jito.bundle";
 import { calculateMicroLamports } from "../raydium/raydium.service";
 import { private_connection } from "../config";
 import { UserTradeSettingService } from "../services/user.trade.setting.service";
+import { FeeService } from "../services/fee.service";
 
 export async function pumpFunSwap(
   payerPrivateKey: string,
@@ -78,10 +79,10 @@ export async function pumpFunSwap(
     let total_fee_percent = 0.01; // 1%
     let total_fee_percent_in_sol = 0.01; // 1%
     let total_fee_percent_in_token = 0;
-    if (isFeeBurn) {
-      total_fee_percent_in_sol = 0.0075;
-      total_fee_percent_in_token = total_fee_percent - total_fee_percent_in_sol;
-    }
+    // if (isFeeBurn) {
+    //   total_fee_percent_in_sol = 0.0075;
+    //   total_fee_percent_in_token = total_fee_percent - total_fee_percent_in_sol;
+    // }
     const fee =
       _amount *
       (is_buy ? total_fee_percent_in_sol : total_fee_percent_in_token);
@@ -241,18 +242,18 @@ export async function pumpFunSwap(
           createCloseAccountInstruction(tokenAccountOut, owner, owner),
         ];
 
-    // // Referral Fee, ReserverStaking Fee, Burn Token
-    // console.log("Before Fee: ", Date.now());
-    // const feeInstructions = await new FeeService().getFeeInstructions(
-    //   total_fee_in_sol,
-    //   total_fee_in_token,
-    //   chat_id,
-    //   payerPrivateKey,
-    //   is_buy ? mintStr : NATIVE_MINT.toString(),
-    //   isToken2022
-    // );
-    // instructions.push(...feeInstructions);
-    // console.log("After Fee: ", Date.now());
+    // Referral Fee, ReserverStaking Fee, Burn Token
+    console.log("Before Fee: ", Date.now());
+    const feeInstructions = await new FeeService().getFeeInstructions(
+      total_fee_in_sol,
+      total_fee_in_token,
+      chat_id,
+      payerPrivateKey,
+      is_buy ? mintStr : NATIVE_MINT.toString(),
+      isToken2022
+    );
+    instructions.push(...feeInstructions);
+    console.log("After Fee: ", Date.now());
 
     const { blockhash, lastValidBlockHeight } =
       await private_connection.getLatestBlockhash();

@@ -232,7 +232,7 @@ export const calcAmountOut = async (
     const pool = await getRpcPoolInfo(poolId, true);
 
     const swapResult = CurveCalculator.swap(
-      new BN(amountIn.toString()),
+      new BN(inAmount * 10 ** inDecimal),
       pool.baseReserve,
       pool.quoteReserve,
       pool.configInfo!.tradeFeeRate,
@@ -248,7 +248,7 @@ export const calcAmountOut = async (
       outputMint: outMint.toString(),
       outAmount: swapResult.destinationAmountSwapped,
       priceImpactPct: pool.poolPrice.sub(executionPrice).div(pool.poolPrice),
-      priceInSol: executionPrice,
+      priceInSol: 1 / pool.poolPrice.toNumber(),
     };
 
   }
