@@ -17,8 +17,9 @@ import { UserTradeSettingService } from "./user.trade.setting.service";
 
 // const provider = new ReferralProvider(connection);
 
+const DEFAULT_JUP_V6_BASE_URL = 'https://quote-api.jup.ag/v6';
 const config = {
-  basePath: "https://growtradebot.fly.dev"
+  basePath: DEFAULT_JUP_V6_BASE_URL
 }
 
 let jupiterTradeableTokens: Array<string> = [];
@@ -71,9 +72,6 @@ export class JupiterService {
       return JSON.parse(res) as boolean;
     }
 
-    const config = {
-      basePath: "https://growtradebot.fly.dev"
-    }
     const jupiterQuoteApi = createJupiterApiClient(config);
     const tokens = await jupiterQuoteApi.tokensGet();
     jupiterTradeableTokens = tokens;
@@ -120,9 +118,6 @@ export class JupiterService {
       const amount = Number(((_amount - fee) * 10 ** decimal).toFixed(0));
       const wallet = Keypair.fromSecretKey(bs58.decode(pk));
 
-      const config = {
-        basePath: "https://growtradebot.fly.dev"
-      }
       const jupiterQuoteApi = createJupiterApiClient(config);
       // const jupiterQuoteApi = createJupiterApiClient();
       const quotegetOpts: QuoteGetRequest = {
