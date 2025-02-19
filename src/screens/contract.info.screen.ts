@@ -95,94 +95,178 @@ export const contractInfoScreenHandler = async (
     const raydiumPoolInfoA = await RaydiumTokenService.findLastOne({ mintA: mint });
     const raydiumPoolInfoB = await RaydiumTokenService.findLastOne({ mintB: mint });
     const raydiumPoolInfo = raydiumPoolInfoA ?? raydiumPoolInfoB;
-    if (raydiumPoolInfo) {//Raydium Cache
+    if (!raydiumPoolInfo) {
+      const jupiterSerivce = new JupiterService();
+      const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
+        mint
+      );
+      if (!jupiterTradeable) {
+        isPumpfunTradable = true;
+      } else {
+        isJupiterTradable = jupiterTradeable;
+      }
+    } else {
       const { creation_ts } = raydiumPoolInfo;
       const duration = Date.now() - creation_ts;
+      // 120minutes
+      if (duration < RAYDIUM_PASS_TIME) {
+        isJupiterTradable = false;
+      } else {
+        const jupiterSerivce = new JupiterService();
+        const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
+          mint
+        );
+        isJupiterTradable = jupiterTradeable;
+      }
+    }
+    console.log("IsJupiterTradeable", isJupiterTradable);
+
+    if (isPumpfunTradable) {
+      const captionForPump = await getPumpTokenInfoCaption(
+        mint,
+        user.wallet_address
+      );
+
+      if (!captionForPump) {
+        bot.deleteMessage(chat_id, pending.message_id);
+        await sendNoneExistTokenNotification(bot, msg);
+        return;
+      }
+      bot.deleteMessage(chat_id, pending.message_id);
+      caption = captionForPump.caption;
+      solbalance = captionForPump.solbalance;
+      splbalance = captionForPump.splbalance;
+    } else if (raydiumPoolInfo && !isJupiterTradable) {
       // 120minutes
       // if (duration < RAYDIUM_PASS_TIME) {
       const captionForRaydium = await getRaydiumTokenInfoCaption(
         raydiumPoolInfo,
         user.wallet_address
       );
-      console.log('captionForRaydium', captionForRaydium)
-      if (captionForRaydium) {
+      if (!captionForRaydium) {
         bot.deleteMessage(chat_id, pending.message_id);
-        caption = captionForRaydium.caption;
-        solbalance = captionForRaydium.solbalance;
-        splbalance = captionForRaydium.splbalance;
-
-        isRaydiumTradable = true;
+        return;
       }
+      bot.deleteMessage(chat_id, pending.message_id);
+      caption = captionForRaydium.caption;
+      solbalance = captionForRaydium.solbalance;
+      splbalance = captionForRaydium.splbalance;
       // }
-    }
-
-    if (!isRaydiumTradable) {//Pump
-      const captionForPump = await getPumpTokenInfoCaption(
+    } else {
+      // check token metadata
+      const tokeninfo = await TokenService.getMintInfo(mint);
+      if (!tokeninfo) {
+        bot.deleteMessage(chat_id, pending.message_id);
+        await sendNoneExistTokenNotification(bot, msg);
+        return;
+      }
+      const captionForJuipter = await getJupiterTokenInfoCaption(
+        tokeninfo,
         mint,
         user.wallet_address
       );
-      console.log('captionForPump', captionForPump)
 
-      if (captionForPump) {
+      if (!captionForJuipter) {
         bot.deleteMessage(chat_id, pending.message_id);
-        caption = captionForPump.caption;
-        solbalance = captionForPump.solbalance;
-        splbalance = captionForPump.splbalance;
-        isPumpfunTradable = true;
+        return;
       }
-    }
-
-    if (!isPumpfunTradable && !raydiumPoolInfo) {
-      //获取当前最新Raydium
-      const raydiumPoolInfo = await getPoolInfoByMint(mint);
-      if (raydiumPoolInfo) {
-        const captionForRaydium = await getRaydiumTokenInfoCaption(
-          raydiumPoolInfo,
-          user.wallet_address
-        );
-        console.log('captionForRaydium', captionForRaydium)
-        if (captionForRaydium) {
-          bot.deleteMessage(chat_id, pending.message_id);
-          caption = captionForRaydium.caption;
-          solbalance = captionForRaydium.solbalance;
-          splbalance = captionForRaydium.splbalance;
-
-          isRaydiumTradable = true;
-        }
-      }
-
-      //Jupiter
-      // // const jupiterSerivce = new JupiterService();
-      // // const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
-      // //   mint
-      // // );
-
-      // // check token metadata
-      // const tokeninfo = await TokenService.getMintInfo(mint);
-      // if (tokeninfo) {
-      //   const captionForJuipter = await getJupiterTokenInfoCaption(
-      //     tokeninfo,
-      //     mint,
-      //     user.wallet_address
-      //   );
-      //   console.log('captionForJuipter', captionForJuipter)
-
-      //   if (captionForJuipter) {
-      //     bot.deleteMessage(chat_id, pending.message_id);
-      //     caption = captionForJuipter.caption;
-      //     solbalance = captionForJuipter.solbalance;
-      //     splbalance = captionForJuipter.splbalance;
-
-      //     isJupiterTradable = true;
-      //   }
-      // }
-    }
-
-    if (!isJupiterTradable && !isPumpfunTradable && !isRaydiumTradable) {
       bot.deleteMessage(chat_id, pending.message_id);
-      await sendNoneExistTokenNotification(bot, msg);
-      return;
+      caption = captionForJuipter.caption;
+      solbalance = captionForJuipter.solbalance;
+      splbalance = captionForJuipter.splbalance;
     }
+
+    
+    // if (raydiumPoolInfo) {//Raydium Cache
+    //   const { creation_ts } = raydiumPoolInfo;
+    //   const duration = Date.now() - creation_ts;
+    //   // 120minutes
+    //   // if (duration < RAYDIUM_PASS_TIME) {
+    //   const captionForRaydium = await getRaydiumTokenInfoCaption(
+    //     raydiumPoolInfo,
+    //     user.wallet_address
+    //   );
+    //   console.log('captionForRaydium', captionForRaydium)
+    //   if (captionForRaydium) {
+    //     bot.deleteMessage(chat_id, pending.message_id);
+    //     caption = captionForRaydium.caption;
+    //     solbalance = captionForRaydium.solbalance;
+    //     splbalance = captionForRaydium.splbalance;
+
+    //     isRaydiumTradable = true;
+    //   }
+    //   // }
+    // }
+
+    // if (!isRaydiumTradable) {//Pump
+    //   const captionForPump = await getPumpTokenInfoCaption(
+    //     mint,
+    //     user.wallet_address
+    //   );
+    //   console.log('captionForPump', captionForPump)
+
+    //   if (captionForPump) {
+    //     bot.deleteMessage(chat_id, pending.message_id);
+    //     caption = captionForPump.caption;
+    //     solbalance = captionForPump.solbalance;
+    //     splbalance = captionForPump.splbalance;
+    //     isPumpfunTradable = true;
+    //   }
+    // }
+
+    // if (!isPumpfunTradable && !raydiumPoolInfo) {
+    //   //获取当前最新Raydium
+    //   const raydiumPoolInfo = await getPoolInfoByMint(mint);
+    //   if (raydiumPoolInfo) {
+    //     const captionForRaydium = await getRaydiumTokenInfoCaption(
+    //       raydiumPoolInfo,
+    //       user.wallet_address
+    //     );
+    //     console.log('captionForRaydium', captionForRaydium)
+    //     if (captionForRaydium) {
+    //       bot.deleteMessage(chat_id, pending.message_id);
+    //       caption = captionForRaydium.caption;
+    //       solbalance = captionForRaydium.solbalance;
+    //       splbalance = captionForRaydium.splbalance;
+
+    //       isRaydiumTradable = true;
+    //     }
+    //   }
+
+    //   if (!isPumpfunTradable && !isRaydiumTradable) {
+    //     //Jupiter
+    //     const jupiterSerivce = new JupiterService();
+    //     const jupiterTradeable = await jupiterSerivce.checkTradableOnJupiter(
+    //       mint
+    //     );
+
+    //     // check token metadata
+    //     const tokeninfo = await TokenService.getMintInfo(mint);
+    //     if (tokeninfo) {
+    //       const captionForJuipter = await getJupiterTokenInfoCaption(
+    //         tokeninfo,
+    //         mint,
+    //         user.wallet_address
+    //       );
+    //       console.log('captionForJuipter', captionForJuipter)
+
+    //       if (captionForJuipter) {
+    //         bot.deleteMessage(chat_id, pending.message_id);
+    //         caption = captionForJuipter.caption;
+    //         solbalance = captionForJuipter.solbalance;
+    //         splbalance = captionForJuipter.splbalance;
+
+    //         isJupiterTradable = true;
+    //       }
+    //     }
+    //   }
+    // }
+
+    // if (!isJupiterTradable && !isPumpfunTradable && !isRaydiumTradable) {
+    //   bot.deleteMessage(chat_id, pending.message_id);
+    //   await sendNoneExistTokenNotification(bot, msg);
+    //   return;
+    // }
 
     const preset_setting = user.preset_setting ?? [0.01, 1, 5, 10];
 
