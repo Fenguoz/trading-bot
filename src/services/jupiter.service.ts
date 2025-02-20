@@ -79,7 +79,7 @@ export class JupiterService {
       console.error("Failed to retrieve coin data:", response.status);
       return 0 as number;
     }
-    const price = response.data[mint].price;
+    const price = response.data.data[mint].price;
     await redisClient.set(key, price);
     await redisClient.expire(key, 30);
     return Number(price);

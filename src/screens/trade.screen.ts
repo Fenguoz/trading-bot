@@ -275,14 +275,22 @@ export const buyHandler = async (
     decimals = metadata.parsed.info.decimals;
     // }
   } else {
-    const mintinfo = await TokenService.getMintInfo(mint);
-    if (!mintinfo) return;
+    const mintinfo = await TokenService.fetchSimpleMetaData(
+      new PublicKey(mint)
+    );
+
+    // Metadata
+    const metadata = await TokenService.getMintMetadata(
+      private_connection,
+      new PublicKey(mint)
+    );
+    if (!metadata) return;
 
     isRaydium = false;
-    name = mintinfo.overview.name || "";
-    symbol = mintinfo.overview.symbol || "";
-    decimals = mintinfo.overview.decimals || 9;
-    isToken2022 = mintinfo.secureinfo.isToken2022;
+    name = mintinfo.name || "";
+    symbol = mintinfo.symbol || "";
+    decimals = metadata.parsed.info.decimals || 9;
+    isToken2022 = metadata.program === "spl-token-2022";
   }
 
   // let isRaydiumTradable = false;
@@ -370,7 +378,7 @@ export const buyHandler = async (
   const raydiumService = new RaydiumSwapService();
   // const jupiterSerivce = new JupiterService();
   console.log("Raydium Swap?", isRaydium, isJupiterTradable);
-  
+
   const quoteResult = isPumpfunTradable
     ? await pumpFunSwap(
         user.private_key,
