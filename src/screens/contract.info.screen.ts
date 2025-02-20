@@ -145,6 +145,7 @@ export const contractInfoScreenHandler = async (
       );
       if (!captionForRaydium) {
         bot.deleteMessage(chat_id, pending.message_id);
+        await sendNoneExistTokenNotification(bot, msg);
         return;
       }
       bot.deleteMessage(chat_id, pending.message_id);
@@ -160,6 +161,7 @@ export const contractInfoScreenHandler = async (
 
       if (!captionForJuipter) {
         bot.deleteMessage(chat_id, pending.message_id);
+        await sendNoneExistTokenNotification(bot, msg);
         return;
       }
       bot.deleteMessage(chat_id, pending.message_id);
