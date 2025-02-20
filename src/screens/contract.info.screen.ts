@@ -153,13 +153,6 @@ export const contractInfoScreenHandler = async (
       splbalance = captionForRaydium.splbalance;
       // }
     } else {
-      // check token metadata
-      const tokeninfo = await TokenService.getMintInfo(mint);
-      if (!tokeninfo) {
-        bot.deleteMessage(chat_id, pending.message_id);
-        await sendNoneExistTokenNotification(bot, msg);
-        return;
-      }
       const captionForJuipter = await getJupiterTokenInfoCaption(
         mint,
         user.wallet_address
