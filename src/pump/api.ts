@@ -27,8 +27,8 @@ export async function getCoinData(mintStr: string) {
       console.error("Failed to retrieve coin data:", response.status);
       return null;
     }
-  } catch (error) {
-    console.error("Error fetching coin data:", error);
+  } catch (error:any) {
+    console.error("Error fetching coin data:", error.message);
     return null;
   }
 }

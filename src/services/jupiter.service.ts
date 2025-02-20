@@ -3,7 +3,7 @@ import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, P
 import { AccountMeta, Instruction, QuoteGetRequest, SwapInstructionsResponse, SwapRequest, createJupiterApiClient } from '@jup-ag/api';
 import bs58 from "bs58";
 // import { ReferralProvider } from "@jup-ag/referral-sdk";
-import { COMMITMENT_LEVEL, RESERVE_WALLET, connection } from "../config";
+import { COMMITMENT_LEVEL, RESERVE_WALLET, agent, connection } from "../config";
 // import { transactionSenderAndConfirmationWaiter } from "../utils/jupiter.transaction.sender";
 import { getSignature } from "../utils/get.signature";
 // import { GasFeeEnum, UserTradeSettingService } from "./user.trade.setting.service";
@@ -14,6 +14,7 @@ import { FeeService } from "./fee.service";
 import { fromWeiToValue } from "../utils";
 import redisClient from "./redis";
 import { UserTradeSettingService } from "./user.trade.setting.service";
+import axios from "axios";
 
 // const provider = new ReferralProvider(connection);
 
@@ -61,6 +62,29 @@ export class JupiterService {
     }, new Array<AddressLookupTableAccount>());
   };
 
+  async getTokenPrice(
+    mint: string
+  ) {
+    const key = `jugprice_${mint}`;
+    const res = await redisClient.get(key);
+    if (res) {
+      return Number(res);
+    }
+
+    const url = `https://api.jup.ag/price/v2?ids=${mint}`;
+    const response = await axios.get(url, {
+      ...agent,
+    })
+    if (response.status != 200) {
+      console.error("Failed to retrieve coin data:", response.status);
+      return 0 as number;
+    }
+    const price = response.data[mint].price;
+    await redisClient.set(key, price);
+    await redisClient.expire(key, 30);
+    return Number(price);
+  }
+
   async checkTradableOnJupiter(
     mint: string
   ) {
@@ -72,10 +96,17 @@ export class JupiterService {
       return JSON.parse(res) as boolean;
     }
 
-    const jupiterQuoteApi = createJupiterApiClient(config);
-    const tokens = await jupiterQuoteApi.tokensGet();
-    jupiterTradeableTokens = tokens;
-    const tradeable = tokens.includes(mint);
+    const url = `https://api.jup.ag/tokens/v1/mints/tradable`;
+    const response = await axios.get(url, {
+      ...agent,
+    });
+    if (response.status != 200) {
+      console.error("Failed to retrieve coin data:", response.status);
+      return false;
+    }
+
+    jupiterTradeableTokens = response.data;
+    const tradeable = jupiterTradeableTokens.includes(mint);
     await redisClient.set(key, JSON.stringify(tradeable));
     await redisClient.expire(key, 30);
 

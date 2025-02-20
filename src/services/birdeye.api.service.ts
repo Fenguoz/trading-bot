@@ -14,8 +14,8 @@ export const BirdEyeAPIService = {
         ...agent,
       })
        .then((response) => {
-        console.log(response)
-          if (response.status != 200) {
+         if (response.status != 200) {
+            console.log(response.data)
             throw new Error("Failed to fetch data");
           }
           return response.data;

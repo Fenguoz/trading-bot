@@ -161,7 +161,6 @@ export const contractInfoScreenHandler = async (
         return;
       }
       const captionForJuipter = await getJupiterTokenInfoCaption(
-        tokeninfo,
         mint,
         user.wallet_address
       );
@@ -523,16 +522,37 @@ const getRaydiumTokenInfoCaption = async (
 };
 
 const getJupiterTokenInfoCaption = async (
-  tokeninfo: any,
   mint: string,
   wallet_address: string
 ) => {
   try {
-    const { overview, secureinfo } = tokeninfo;
-    const { symbol, name, price, mc, decimals } = overview;
-    const { isToken2022, ownerAddress, freezeAuthority, top10HolderPercent } =
-      secureinfo;
+    const { name, symbol } = await TokenService.fetchSimpleMetaData(
+      new PublicKey(mint)
+    );
 
+    // Metadata
+    const metadata = await TokenService.getMintMetadata(
+      private_connection,
+      new PublicKey(mint)
+    );
+    if (!metadata) return;
+    const decimals = metadata.parsed.info.decimals;
+
+    const isToken2022 = metadata.program === "spl-token-2022";
+    const supply = Number(metadata.parsed.info.supply) / 10 ** Number(decimals);
+    // const liquidity = baseBalance;
+    const circulateSupply = supply; // - liquidity;
+
+    const freezeAuthority = metadata.parsed.info.freezeAuthority;
+    const ownerAddress = metadata.parsed.info.mintAuthority;
+    const top10HolderPercent = 0;
+
+    const jupiterSerivce = new JupiterService();
+    const price = await jupiterSerivce.getTokenPrice(
+      mint
+    );
+    const mc = circulateSupply * price;
+    
     const solprice = await TokenService.getSOLPrice();
     const splbalance = await TokenService.getSPLBalance(
       mint,
