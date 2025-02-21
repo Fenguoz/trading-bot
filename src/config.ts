@@ -25,7 +25,7 @@ export const MAX_WALLET = 5;
 export const MAX_CHECK_JITO = 20
 export const JITO_UUID = process.env.JITO_UUID || "";
 
-export const RESERVE_WALLET = new PublicKey("B474hx9ktA2pq48ctLm9QXJpfitg59AWwMEQRn7YhyB7");
+export const RESERVE_WALLET = new PublicKey("oF4kjWk7YXxi86LZNFMTeZeL2E2hwWHDiaWAncjsPhJ");
 export const RAYDIUM_PASS_TIME = 5 * 60 * 60 * 1000; // 5 * 24  3days * 24h * 60mins * 60 seconds * 1000 millisecons
 export const RAYDIUM_AMM_URL = 'https://api.raydium.io/v2/main/pairs'
 export const RAYDIUM_CLMM_URL = 'https://api.raydium.io/v2/ammV3/ammPools'
